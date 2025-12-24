@@ -23,7 +23,7 @@ class _LoginPage extends State<LoginPage> {
     _webSocketService.sendMessage({
       'action': 'login',
       'username': username,
-      'password': password, 
+      'password': password,
     });
   }
 
@@ -37,41 +37,25 @@ class _LoginPage extends State<LoginPage> {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('username', username);
         await prefs.setString('token', data['token']);
-        await prefs.setString('company', data['name']);
+        await prefs.setString('sla7ia', data['name']);
 
-        if(data['name']=='admin')
-        {
-        setState(() {
-          Navigator.pushReplacementNamed(context, 'admin');
-        });
-        }
-        else if(data['name']=='coadmin')
-        { 
+        if (data['name'] == 'admin') {
           setState(() {
-          Navigator.pushReplacementNamed(context, 'coadmin');
-        });
-        }
-        else if(data['name']=='superadmin')
-        { 
+            Navigator.pushReplacementNamed(context, 'admin');
+          });
+        } else if (data['name'] == 'coadmin') {
           setState(() {
-          Navigator.pushReplacementNamed(context, 'superadmin');
-        });
+            Navigator.pushReplacementNamed(context, 'coadmin');
+          });
+        } else if (data['name'] == 'superadmin') {
+          setState(() {
+            Navigator.pushReplacementNamed(context, 'superadmin');
+          });
+        } else {
+          setState(() {
+            Navigator.pushReplacementNamed(context, 'nonadmin');
+          });
         }
-        else
-        {
-        setState(() {
-          Navigator.pushReplacementNamed(context, 'nonadmin');
-        });
-
-        }
-
-    
-
-
-
-       
-      
-
       } else if (data['status'] == 'error') {
         setState(() {
           _loginStatus = 'Invalid credentials';
