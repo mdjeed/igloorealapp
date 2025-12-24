@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:igloo/websocket.dart';
@@ -16,7 +14,7 @@ class SuperAdmin extends StatefulWidget {
 
 class _SuperAdmin extends State<SuperAdmin> {
   final WebSocketService _webSocketService = WebSocketService();
-    String? selectedValue;
+  String? selectedValue;
 
   final List<Map<String, dynamic>> categories = [];
   List<Map<String, dynamic>> selectedItems = [];
@@ -97,16 +95,16 @@ class _SuperAdmin extends State<SuperAdmin> {
             _isitemloading = false; // تعيين حالة التحميل إلى false عند حدوث خطأ
           });
           print('Error status received');
-        }
-
-        else if (data['status']=='update_success')
-        {
-           final snackBar = SnackBar(
-                content: Text('تم التعديل بنجاح',style: TextStyle(fontFamily: 'arabic'),),
-                backgroundColor: Colors.green,
-                duration: Duration(seconds: 2),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        } else if (data['status'] == 'update_success') {
+          final snackBar = SnackBar(
+            content: Text(
+              'تم التعديل بنجاح',
+              style: TextStyle(fontFamily: 'arabic'),
+            ),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
         }
       } catch (e) {
         setState(() {
@@ -224,45 +222,47 @@ class _SuperAdmin extends State<SuperAdmin> {
     });
   }
 
-void _incrementCounter(int itemId) {
-  setState(() {
-    _counters[itemId] = (_counters[itemId] ?? 0) + 1;
+  void _incrementCounter(int itemId) {
+    setState(() {
+      _counters[itemId] = (_counters[itemId] ?? 0) + 1;
 
-    // إضافة أو تحديث العنصر في selectedItems
-    final index = selectedItems.indexWhere((element) => element['id'] == itemId);
-    if (index == -1) {
-      // إذا لم يكن العنصر موجودًا، يتم إضافته
-      selectedItems.add({
-        'id': itemId,
-        'name': items.firstWhere((item) => item['id'] == itemId)['name'],
-        'counter': _counters[itemId],
-      });
-    } else {
-      // إذا كان العنصر موجودًا، يتم تحديث العداد
-      selectedItems[index]['counter'] = _counters[itemId];
-    }
-  });
-}
+      // إضافة أو تحديث العنصر في selectedItems
+      final index =
+          selectedItems.indexWhere((element) => element['id'] == itemId);
+      if (index == -1) {
+        // إذا لم يكن العنصر موجودًا، يتم إضافته
+        selectedItems.add({
+          'id': itemId,
+          'name': items.firstWhere((item) => item['id'] == itemId)['name'],
+          'counter': _counters[itemId],
+        });
+      } else {
+        // إذا كان العنصر موجودًا، يتم تحديث العداد
+        selectedItems[index]['counter'] = _counters[itemId];
+      }
+    });
+  }
 
-void _decrementCounter(int itemId) {
-  setState(() {
-    if ((_counters[itemId] ?? 0) > 0) {
-      _counters[itemId] = (_counters[itemId] ?? 0) - 1;
+  void _decrementCounter(int itemId) {
+    setState(() {
+      if ((_counters[itemId] ?? 0) > 0) {
+        _counters[itemId] = (_counters[itemId] ?? 0) - 1;
 
-      // تحديث أو إزالة العنصر من selectedItems
-      final index = selectedItems.indexWhere((element) => element['id'] == itemId);
-      if (index != -1) {
-        if (_counters[itemId] == 0) {
-          // إذا أصبح العداد صفرًا، يتم إزالة العنصر
-          selectedItems.removeAt(index);
-        } else {
-          // إذا لم يصل العداد إلى صفر، يتم تحديثه
-          selectedItems[index]['counter'] = _counters[itemId];
+        // تحديث أو إزالة العنصر من selectedItems
+        final index =
+            selectedItems.indexWhere((element) => element['id'] == itemId);
+        if (index != -1) {
+          if (_counters[itemId] == 0) {
+            // إذا أصبح العداد صفرًا، يتم إزالة العنصر
+            selectedItems.removeAt(index);
+          } else {
+            // إذا لم يصل العداد إلى صفر، يتم تحديثه
+            selectedItems[index]['counter'] = _counters[itemId];
+          }
         }
       }
-    }
-  });
-}
+    });
+  }
 
   void compareVersions(
       String currentVersion, String latestVersion, String urlupdate) {
@@ -323,12 +323,15 @@ void _decrementCounter(int itemId) {
     );
   }
 
-   void showPopup() async {
+  void showPopup() async {
     final result = await showDialog<String>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('اختر الشركة',style:TextStyle(fontFamily: 'arabic') ,),
+          title: Text(
+            'اختر الشركة',
+            style: TextStyle(fontFamily: 'arabic'),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -344,7 +347,7 @@ void _decrementCounter(int itemId) {
                   Navigator.of(context).pop('carrefour');
                 },
               ),
-               ListTile(
+              ListTile(
                 title: Text('restaurant'),
                 onTap: () {
                   Navigator.of(context).pop('restaurant');
@@ -364,116 +367,121 @@ void _decrementCounter(int itemId) {
     }
   }
 
-void _showEditDialog(
-    BuildContext context, int itemId, String currentName, int currentQuantity) {
-  final TextEditingController nameController =
-      TextEditingController(text: currentName);
-  final TextEditingController quantityController =
-      TextEditingController(text: currentQuantity.toString());
-  final TextEditingController addQuantityController = TextEditingController(); // خانة الكمية الإضافية
+  void _showEditDialog(BuildContext context, int itemId, String currentName,
+      int currentQuantity) {
+    final TextEditingController nameController =
+        TextEditingController(text: currentName);
+    final TextEditingController quantityController =
+        TextEditingController(text: currentQuantity.toString());
+    final TextEditingController addQuantityController =
+        TextEditingController(); // خانة الكمية الإضافية
 
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        backgroundColor: Colors.white,
-        title: const Text(
-          'تعديل السلعة',
-          style: TextStyle(fontFamily: 'arabic'),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              textDirection: TextDirection.rtl,
-              style: const TextStyle(fontFamily: "arabic"),
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'اسم السلعة',
-                labelStyle: TextStyle(fontFamily: 'arabic'),
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: const Text(
+            'تعديل السلعة',
+            style: TextStyle(fontFamily: 'arabic'),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                textDirection: TextDirection.rtl,
+                style: const TextStyle(fontFamily: "arabic"),
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'اسم السلعة',
+                  labelStyle: TextStyle(fontFamily: 'arabic'),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                textDirection: TextDirection.rtl,
+                style: const TextStyle(fontFamily: "arabic"),
+                controller: quantityController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'الكمية الحالية',
+                  labelStyle: TextStyle(fontFamily: 'arabic'),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                textDirection: TextDirection.rtl,
+                style: const TextStyle(fontFamily: "arabic"),
+                controller: addQuantityController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'إضافة كمية',
+                  labelStyle: TextStyle(fontFamily: 'arabic'),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'إلغاء',
+                style: TextStyle(fontFamily: 'arabic', color: Colors.red),
               ),
             ),
-            const SizedBox(height: 10),
-            TextField(
-              textDirection: TextDirection.rtl,
-              style: const TextStyle(fontFamily: "arabic"),
-              controller: quantityController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'الكمية الحالية',
-                labelStyle: TextStyle(fontFamily: 'arabic'),
-              ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              textDirection: TextDirection.rtl,
-              style: const TextStyle(fontFamily: "arabic"),
-              controller: addQuantityController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'إضافة كمية',
-                labelStyle: TextStyle(fontFamily: 'arabic'),
+            TextButton(
+              onPressed: () {
+                // جلب القيم المدخلة
+                final updatedName = nameController.text.trim();
+                final updatedQuantity =
+                    int.tryParse(quantityController.text.trim()) ??
+                        currentQuantity;
+                final addedQuantity =
+                    int.tryParse(addQuantityController.text.trim()) ?? 0;
+
+                // استدعاء دالة التحديث مع القيم الجديدة
+                _updateItem(
+                    itemId, updatedName, updatedQuantity, addedQuantity);
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'حفظ',
+                style: TextStyle(fontFamily: 'arabic', color: Colors.blue),
               ),
             ),
           ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text(
-              'إلغاء',
-              style: TextStyle(fontFamily: 'arabic', color: Colors.red),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              // جلب القيم المدخلة
-              final updatedName = nameController.text.trim();
-              final updatedQuantity =
-                  int.tryParse(quantityController.text.trim()) ?? currentQuantity;
-              final addedQuantity =
-                  int.tryParse(addQuantityController.text.trim()) ?? 0;
+        );
+      },
+    );
+  }
 
-              // استدعاء دالة التحديث مع القيم الجديدة
-              _updateItem(itemId, updatedName, updatedQuantity, addedQuantity);
-              Navigator.of(context).pop();
-            },
-            child: const Text(
-              'حفظ',
-              style: TextStyle(fontFamily: 'arabic', color: Colors.blue),
-            ),
-          ),
-        ],
-      );
-    },
-  );
-}
 // الدالة لتحديث العنصر في القائمة
-void _updateItem(
-    int itemId, String updatedName, int updatedQuantity, int addedQuantity) {
-  setState(() {
-    for (var item in items) {
-      if (item['id'] == itemId) {
-        // تحديث القيم محليًا
-        item['name'] = updatedName;
-        item['quantity'] = updatedQuantity + addedQuantity;
+  void _updateItem(
+      int itemId, String updatedName, int updatedQuantity, int addedQuantity) {
+    setState(() {
+      for (var item in items) {
+        if (item['id'] == itemId) {
+          // تحديث القيم محليًا
+          item['name'] = updatedName;
+          item['quantity'] = updatedQuantity + addedQuantity;
 
-        // إرسال التعديلات إلى السيرفر
-        _webSocketService.sendMessage({
-          'action': 'update_item',
-          'item_id': itemId,
-          'updated_name': updatedName,
-          'updated_quantity': updatedQuantity,
-          'added_quantity': addedQuantity,
-        });
+          // إرسال التعديلات إلى السيرفر
+          _webSocketService.sendMessage({
+            'action': 'update_item',
+            'item_id': itemId,
+            'updated_name': updatedName,
+            'updated_quantity': updatedQuantity,
+            'added_quantity': addedQuantity,
+          });
 
-        break;
+          break;
+        }
       }
-    }
-  });
-}
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -573,7 +581,6 @@ void _updateItem(
                       style: TextStyle(fontFamily: 'arabic', fontSize: 15)),
                 ),
               ),
-              
               Container(
                 margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
                 width: double.infinity,
@@ -712,7 +719,6 @@ void _updateItem(
                               child: Container(
                                 alignment: Alignment.center,
                                 width: 130,
-                               
                                 margin: const EdgeInsets.all(5),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(20),
@@ -755,7 +761,8 @@ void _updateItem(
                                     itemBuilder: (context, index) {
                                       final Map<String, dynamic> item =
                                           items[index];
-                                          final int quantity = item['quantity'] ?? 0;
+                                      final int quantity =
+                                          item['quantity'] ?? 0;
                                       final String itemsname =
                                           item['name'] ?? 'غير معروف';
                                       final int itemId = item['id'] ?? 0;
@@ -824,8 +831,8 @@ void _updateItem(
                                                         Text(
                                                           itemsname,
                                                           style: const TextStyle(
-                                                            fontFamily:
-                                                                'arabic',
+                                                              fontFamily:
+                                                                  'arabic',
                                                               fontSize: 16,
                                                               fontWeight:
                                                                   FontWeight
@@ -856,24 +863,31 @@ void _updateItem(
                                                 ],
                                               ),
                                               Container(
-                                                
                                                 padding: const EdgeInsets.only(
                                                     right: 0),
                                                 child: Row(
-                                                   mainAxisSize: MainAxisSize.min,
-                                                    crossAxisAlignment: CrossAxisAlignment.center,
-
-
-                                                mainAxisAlignment: MainAxisAlignment.end,
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.center,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.end,
                                                   children: [
                                                     IconButton(
-                                                        onPressed: () {
-                                                          _showEditDialog(context, itemId, itemsname, quantity);
-                                                        },
-                                                        icon: const Icon(Icons.edit, color: Colors.blue ,size:15 ,),
+                                                      onPressed: () {
+                                                        _showEditDialog(
+                                                            context,
+                                                            itemId,
+                                                            itemsname,
+                                                            quantity);
+                                                      },
+                                                      icon: const Icon(
+                                                        Icons.edit,
+                                                        color: Colors.blue,
+                                                        size: 15,
                                                       ),
-
-                                                   IconButton(
+                                                    ),
+                                                    IconButton(
                                                       onPressed: () =>
                                                           _incrementCounter(
                                                               itemId),
@@ -921,9 +935,11 @@ void _updateItem(
                                     ),
                                 ],
                               )
-                            : const Center(child: Text('لا توجد سلع متاحة',style: TextStyle(fontFamily: "arabic"))),
+                            : const Center(
+                                child: Text('لا توجد سلع متاحة',
+                                    style: TextStyle(fontFamily: "arabic"))),
                       ),
-                        SizedBox(height: 100),
+                      SizedBox(height: 100),
                     ],
                   ),
                 ),
@@ -936,89 +952,86 @@ void _updateItem(
                     child: CircularProgressIndicator(),
                   ),
                 ),
-              
             ],
           ),
-         
         ),
-         
-      floatingActionButton: 
-   Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FloatingActionButton(
-            elevation: 0,
-            isExtended: false,
-            onPressed: showPopup,
-            child: const Icon(
-              Icons.add,
-              color: Colors.black87,
+        floatingActionButton: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            FloatingActionButton(
+              elevation: 0,
+              isExtended: false,
+              onPressed: showPopup,
+              child: const Icon(
+                Icons.add,
+                color: Colors.black87,
+              ),
             ),
-          ),
 
-          const SizedBox(width: 100, 
-          ), // مسافة بين الزرين
-          FloatingActionButton(
-            elevation: 0,
-            isExtended: false,
-            onPressed: () {
-              // تصفية العناصر التي تحتوي على كمية 2 أو أقل
-              final lowStockItems =
-                  items.where((item) => (item['quantity'] ?? 0) <= 5).toList();
+            const SizedBox(
+              width: 100,
+            ), // مسافة بين الزرين
+            FloatingActionButton(
+              elevation: 0,
+              isExtended: false,
+              onPressed: () {
+                // تصفية العناصر التي تحتوي على كمية 2 أو أقل
+                final lowStockItems = items
+                    .where((item) => (item['quantity'] ?? 0) <= 5)
+                    .toList();
 
-              // عرض العناصر في مربع حوار
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    backgroundColor: Colors.white,
-                    title: const Text(
-                      'السلع قليلة المخزون',
-                      style: TextStyle(fontFamily: 'arabic'),
-                    ),
-                    content: SizedBox(
-                      height: 200,
-                      width: double.maxFinite,
-                      child: ListView.builder(
-                        itemCount: lowStockItems.length,
-                        itemBuilder: (context, index) {
-                          final item = lowStockItems[index];
-                          return ListTile(
-                            title: Text(
-                              item['name'] ?? 'غير معروف',
-                              textDirection: TextDirection.rtl,
-                              style: const TextStyle(fontFamily: 'arabic'),
-                            ),
-                            subtitle: Text(
-                              'الكمية: ${item['quantity'] ?? 0}',
-                              textDirection: TextDirection.rtl,
-                              style: const TextStyle(fontFamily: 'arabic'),
-                            ),
-                          );
-                        },
+                // عرض العناصر في مربع حوار
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      backgroundColor: Colors.white,
+                      title: const Text(
+                        'السلع قليلة المخزون',
+                        style: TextStyle(fontFamily: 'arabic'),
                       ),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text(
-                          'إغلاق',
-                          style: TextStyle(fontFamily: 'arabic'),
+                      content: SizedBox(
+                        height: 200,
+                        width: double.maxFinite,
+                        child: ListView.builder(
+                          itemCount: lowStockItems.length,
+                          itemBuilder: (context, index) {
+                            final item = lowStockItems[index];
+                            return ListTile(
+                              title: Text(
+                                item['name'] ?? 'غير معروف',
+                                textDirection: TextDirection.rtl,
+                                style: const TextStyle(fontFamily: 'arabic'),
+                              ),
+                              subtitle: Text(
+                                'الكمية: ${item['quantity'] ?? 0}',
+                                textDirection: TextDirection.rtl,
+                                style: const TextStyle(fontFamily: 'arabic'),
+                              ),
+                            );
+                          },
                         ),
                       ),
-                    ],
-                  );
-                },
-              );
-            },
-            child: const Icon(Icons.filter_list),
-          ),
-        ],
-      ),
-  
-    floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text(
+                            'إغلاق',
+                            style: TextStyle(fontFamily: 'arabic'),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+              child: const Icon(Icons.filter_list),
+            ),
+          ],
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       ),
     );
   }
