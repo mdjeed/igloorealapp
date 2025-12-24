@@ -42,7 +42,7 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       title: 'igloo',
       routes: {
-        'homepage':(context) => HomePage(),
+        'homepage': (context) => HomePage(),
         'fingerpage': (context) => AttendancePage(),
         'login': (context) => const LoginPage(),
         'sel3aout': (context) => const SelectedProduct(),
@@ -67,20 +67,15 @@ class _MyAppState extends State<MyApp> {
               return const InterViewPage(); // عرض صفحة Onboarding
             } else if (snapshot.data == 'admin') {
               return const Admin(); // الصفحة الرئيسية لـ admin
-              
-            } 
-            else if (snapshot.data == 'superadmin') {
+            } else if (snapshot.data == 'superadmin') {
               return const SuperAdmin();
-             }
-            else if (snapshot.data == 'coadmin') {
+            } else if (snapshot.data == 'coadmin') {
               return const CoAdmin(); // الصفحة الرئيسية لـ coadmin
             } else if (snapshot.data == 'nonadmin') {
               return const NonAdmin(); // الصفحة الرئيسية لـ nonadmin
-            } 
-            else {
+            } else {
               return const LoginPage(); // صفحة تسجيل الدخول
             }
-            
           }
         },
       ),
