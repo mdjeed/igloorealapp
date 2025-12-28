@@ -257,13 +257,59 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Container(
                     alignment: Alignment.topRight,
-                    padding: const EdgeInsets.only(right: 20, top: 20),
-                    child: Text(
-                      "  مرحبا بك ,$username",
-                      style: TextStyle(
-                          fontFamily: 'arabic',
-                          fontSize: 20,
-                          color: Color(0xff2e2e2e)),
+                    padding: const EdgeInsets.only(right: 15, top: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "  مرحبا بك ,$username",
+                          style: TextStyle(
+                              fontFamily: 'arabic',
+                              fontSize: 20,
+                              color: Color(0xff2e2e2e)),
+                        ),
+                        Container(
+                          margin: EdgeInsets.only(top: 5, right: 15),
+                          child: Text(
+                            " لوحة التحكم",
+                            style: TextStyle(
+                                fontFamily: 'arabic',
+                                fontSize: 15,
+                                color: Color(0xff696868)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(top: 30),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                              color: Color(0xff18f941).withOpacity(0.25),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(20))),
+                          width: 150,
+                          height: 220,
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Container(
+                                    alignment: Alignment.center,
+                                    margin: EdgeInsets.only(
+                                      top: 20,
+                                    ),
+                                    child: SvgPicture.asset(
+                                      'assets/images/activitay.svg',
+                                      width: 50.0,
+                                      height: 80.0,
+                                    )),
+                              ]),
+                        )
+                      ],
                     ),
                   )
                 ],
