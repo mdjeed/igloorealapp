@@ -13,7 +13,7 @@ import 'package:igloo/superadmin.dart';
 import 'package:igloo/homepage.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized(); // تأكد من تهيئة Flutter
+  WidgetsFlutterBinding.ensureInitialized();
   final WebSocketService _webSocketService = WebSocketService();
 
   runApp(const MyApp());
