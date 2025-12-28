@@ -1,0 +1,1 @@
+ F:\\projects\\igloorealapp\\.dart_tool\\flutter_build\\8e890be9f365c528e2c3dab82861b2be\\native_assets.yaml: 
