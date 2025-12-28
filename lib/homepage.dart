@@ -80,7 +80,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> loadUsername() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      String username = prefs.getString('username') ?? '';
+      username = prefs.getString('username') ?? '';
     });
   }
 
@@ -118,8 +118,8 @@ class _HomePageState extends State<HomePage> {
                 child: IconButton(
                   icon: SvgPicture.asset(
                     'assets/images/humberg.svg',
-                    width: 35.0,
-                    height: 35.0,
+                    width: 37.0,
+                    height: 37.0,
                   ),
                   onPressed: () => Scaffold.of(context).openEndDrawer(),
                 ),
@@ -248,6 +248,29 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
+        body: Container(
+            child: Stack(
+          children: [
+            RefreshIndicator(
+              onRefresh: loadUsername,
+              child: Column(
+                children: [
+                  Container(
+                    alignment: Alignment.topRight,
+                    padding: const EdgeInsets.only(right: 20, top: 20),
+                    child: Text(
+                      "  مرحبا بك ,$username",
+                      style: TextStyle(
+                          fontFamily: 'arabic',
+                          fontSize: 20,
+                          color: Color(0xff2e2e2e)),
+                    ),
+                  )
+                ],
+              ),
+            )
+          ],
+        )),
       ),
     );
   }
