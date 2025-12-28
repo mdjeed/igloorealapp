@@ -289,7 +289,7 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         Container(
                           decoration: BoxDecoration(
-                              color: Color(0xff18f941).withOpacity(0.25),
+                              color: Color(0xffafffbe).withOpacity(0.26),
                               borderRadius:
                                   BorderRadius.all(Radius.circular(20))),
                           width: 150,
