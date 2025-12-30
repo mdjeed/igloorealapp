@@ -288,27 +288,71 @@ class _HomePageState extends State<HomePage> {
                       mainAxisSize: MainAxisSize.max,
                       children: [
                         Container(
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 150,
+                                height: 100,
+                                decoration:
+                                    BoxDecoration(color: Color(0xFFF7EFE7)),
+                              )
+                            ],
+                          ),
+                        ),
+                        Container(
                           decoration: BoxDecoration(
                               color: Color(0xffafffbe).withOpacity(0.26),
                               borderRadius:
                                   BorderRadius.all(Radius.circular(20))),
                           width: 150,
-                          height: 220,
+                          height: 250,
                           child: Column(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Container(
                                     alignment: Alignment.center,
                                     margin: EdgeInsets.only(
-                                      top: 20,
+                                      top: 40,
                                     ),
                                     child: SvgPicture.asset(
                                       'assets/images/activitay.svg',
                                       width: 50.0,
-                                      height: 80.0,
+                                      height: 90.0,
+                                      colorFilter: ColorFilter.mode(
+                                        Color(0xFF5F8F86).withOpacity(0.6),
+                                        BlendMode.srcIn,
+                                      ),
                                     )),
+                                Container(
+                                  child: Column(
+                                    children: [
+                                      Container(
+                                        margin: EdgeInsets.only(top: 10),
+                                        child: Text(
+                                          "متابعة المخزون",
+                                          style: TextStyle(
+                                              fontSize: 16,
+                                              fontFamily: 'arabic',
+                                              color: Color(0xff2e2e2e),
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                      Container(
+                                        margin: EdgeInsets.only(top: 4),
+                                        child: Text(
+                                          "في وقت متزامن ",
+                                          style: TextStyle(
+                                              fontFamily: 'arabic',
+                                              fontSize: 12,
+                                              color: Color(0xff696868),
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
                               ]),
-                        )
+                        ),
                       ],
                     ),
                   )
