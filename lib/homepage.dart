@@ -291,15 +291,113 @@ class _HomePageState extends State<HomePage> {
                           child: Column(
                             children: [
                               Container(
-                                width: 150,
-                                height: 100,
-                                decoration:
-                                    BoxDecoration(color: Color(0xFFF7EFE7)),
+                                padding: EdgeInsets.only(right: 20),
+                                width: 160,
+                                height: 110,
+                                decoration: BoxDecoration(
+                                    color: Color(0xFFF7EFE7),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(20))),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                        margin: EdgeInsets.only(
+                                          top: 20,
+                                        ),
+                                        child: SvgPicture.asset(
+                                          'assets/images/empo.svg',
+                                          width: 20,
+                                          height: 25,
+                                          colorFilter: ColorFilter.mode(
+                                            Color(0xffedbd8d),
+                                            BlendMode.srcIn,
+                                          ),
+                                        )),
+                                    Container(
+                                      margin: EdgeInsets.only(top: 10),
+                                      child: Text(
+                                        " اجمالي الموظفين",
+                                        style: TextStyle(
+                                            fontFamily: 'arabic',
+                                            fontSize: 12,
+                                            color: Color(0xff696868),
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    Container(
+                                      margin: EdgeInsets.only(top: 5, right: 8),
+                                      child: Text(
+                                        "10 ",
+                                        style: TextStyle(
+                                            fontSize: 15,
+                                            fontFamily: 'arabic',
+                                            color: Color(0xff2e2e2e),
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                height: 15,
+                              ),
+                              Container(
+                                padding: EdgeInsets.only(right: 20),
+                                width: 160,
+                                height: 110,
+                                decoration: BoxDecoration(
+                                    color: Color(0xFFF7EFE7),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(20))),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                        margin: EdgeInsets.only(
+                                          top: 20,
+                                        ),
+                                        child: SvgPicture.asset(
+                                          'assets/images/empo.svg',
+                                          width: 20,
+                                          height: 25,
+                                          colorFilter: ColorFilter.mode(
+                                            Color(0xffedbd8d),
+                                            BlendMode.srcIn,
+                                          ),
+                                        )),
+                                    Container(
+                                      margin: EdgeInsets.only(top: 10),
+                                      child: Text(
+                                        " اجمالي الموظفين",
+                                        style: TextStyle(
+                                            fontFamily: 'arabic',
+                                            fontSize: 12,
+                                            color: Color(0xff696868),
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    Container(
+                                      margin: EdgeInsets.only(top: 5, right: 8),
+                                      child: Text(
+                                        "10 ",
+                                        style: TextStyle(
+                                            fontSize: 15,
+                                            fontFamily: 'arabic',
+                                            color: Color(0xff2e2e2e),
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               )
                             ],
                           ),
                         ),
                         Container(
+                          margin: EdgeInsets.only(right: 10),
                           decoration: BoxDecoration(
                               color: Color(0xffafffbe).withOpacity(0.26),
                               borderRadius:
