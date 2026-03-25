@@ -60,16 +60,29 @@ class _Addproductpage extends State<Addproductpage> {
     final quantity = int.tryParse(_quantityController.text.trim()) ?? 0;
 
     if (productName.isEmpty || _selectedCategoryId == null || quantity <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: Colors.red,
-          content: Text(
-            'رجاءً تحقق من الحقول بشكل صحيح',
-            style: TextStyle(fontFamily: 'arabic'),
-          ),
-          duration: Duration(seconds: 2),
-        ),
-      );
+       ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.red,
+              margin: const EdgeInsets.only(
+                bottom: 20,
+                left: 80,
+                right: 80,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              content: const Text(
+               'رجاءً تحقق من الحقول بشكل صحيح',
+            style: TextStyle(
+              color: Colors.white,
+              fontFamily: 'arabic',
+            ),
+                textAlign: TextAlign.center,
+                textDirection: TextDirection.rtl,
+              ),
+            ),
+);
       return;
     }
 
@@ -92,45 +105,104 @@ class _Addproductpage extends State<Addproductpage> {
      
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        backgroundColor: Colors.green,
-        content: Text(
-          'تم إضافة السلعة بنجاح',
-          style: TextStyle(fontFamily: 'arabic'),
-        ),
-        duration: Duration(seconds: 2),
-      ),
-    );
+       ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.green,
+              margin: const EdgeInsets.only(
+                bottom: 20,
+                left: 80,
+                right: 80,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              content: const Text(
+                'تم إضافة السلعة بنجاح',
+            style: TextStyle(
+              color: Colors.white,
+              fontFamily: 'arabic',
+            ),
+                textAlign: TextAlign.center,
+                textDirection: TextDirection.rtl,
+              ),
+            ),
+);
   }
 
 
-      void add_catego()
-    {
-       final  addcatego= _categoname.text.trim();
+void add_catego() {
 
-       _webSocketService.sendMessage({
-      'action': 'add_category',
-      'name': addcatego,
-    });
+  final addcatego = _categoname.text.trim();
 
+  // تحقق من الحقل
+  if (addcatego.isEmpty) {
 
-_categoname.clear();
+       ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.red,
+              margin: const EdgeInsets.only(
+                bottom: 20,
+                left: 80,
+                right: 80,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              content: const Text(
+               'الرجاء إدخال اسم التصنيف',
+            style: TextStyle(
+              color: Colors.white,
+              fontFamily: 'arabic',
+            ),
+                textAlign: TextAlign.center,
+                textDirection: TextDirection.rtl,
+              ),
+            ),
+);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        backgroundColor: Colors.green,
-        content: Text(
-          'تم إضافة التصنيف بنجاح',
-          style: TextStyle(fontFamily: 'arabic'),
-        ),
-        duration: Duration(seconds: 2),
-      ),
+    return;
+  }
 
-  );
-    }
+  // إرسال الطلب
+  _webSocketService.sendMessage({
+    'action': 'add_category',
+    'name': addcatego,
+  });
 
+  // مسح الحقل
+  _categoname.clear();
 
+  // إخفاء الكيبورد
+  FocusScope.of(context).unfocus();
+
+  // رسالة نجاح
+       ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.green,
+              margin: const EdgeInsets.only(
+                bottom: 20,
+                left: 80,
+                right: 80,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              content: const Text(
+               'تم إضافة التصنيف بنجاح',
+            style: TextStyle(
+              color: Colors.white,
+              fontFamily: 'arabic',
+            ),
+                textAlign: TextAlign.center,
+                textDirection: TextDirection.rtl,
+              ),
+            ),
+);
+
+}
 
   @override
   Widget build(BuildContext context) {

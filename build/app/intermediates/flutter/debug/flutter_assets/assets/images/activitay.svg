@@ -1,0 +1,13 @@
+<svg viewBox="0 0 100 80"
+     xmlns="http://www.w3.org/2000/svg"
+     preserveAspectRatio="xMidYMid meet">
+
+  <!-- القاعدة عند y = 75 -->
+
+  <rect x="5"  y="55" width="10" height="20" rx="5" fill="#9BBFB6"/>
+  <rect x="25" y="45" width="10" height="30" rx="5" fill="#9BBFB6"/>
+  <rect x="45" y="20" width="10" height="55" rx="5" fill="#9BBFB6"/>
+  <rect x="65" y="45" width="10" height="30" rx="5" fill="#9BBFB6"/>
+  <rect x="85" y="55" width="10" height="20" rx="5" fill="#9BBFB6"/>
+
+</svg>

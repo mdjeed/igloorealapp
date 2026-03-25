@@ -60,6 +60,29 @@ class _LoginPage extends State<LoginPage> {
         setState(() {
           _loginStatus = 'Invalid credentials';
         });
+       ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.red,
+              margin: const EdgeInsets.only(
+                bottom: 20,
+                left: 80,
+                right: 80,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              content: const Text(
+                'اسم المستخدم او كلمة السر غير صحيحة',
+            style: TextStyle(
+              color: Colors.white,
+              fontFamily: 'arabic',
+            ),
+                textAlign: TextAlign.center,
+                textDirection: TextDirection.rtl,
+              ),
+            ),
+);
       }
     }, onError: (error) {
       print('Error: $error'); // طباعة أي خطأ يحدث

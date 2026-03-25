@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:igloo/websocket.dart';
-
+import 'package:flutter/cupertino.dart';
 class SelectedProduct extends StatefulWidget {
   const SelectedProduct({super.key});
 
@@ -137,7 +137,9 @@ class _SelectedProduct extends State<SelectedProduct> {
                 )
               : const Center(
                   child:
-                      CircularProgressIndicator()), // عرض مؤشر التحميل إذا لم تكن هناك بيانات بعد
+                    CupertinoActivityIndicator(
+                                radius: 15,
+                              ),), // عرض مؤشر التحميل إذا لم تكن هناك بيانات بعد
         ),
       ),
     );

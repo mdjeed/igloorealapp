@@ -4,7 +4,7 @@ import 'package:igloo/websocket.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'package:flutter/cupertino.dart';
 class Admin extends StatefulWidget {
   const Admin({super.key});
 
@@ -622,6 +622,8 @@ void _updateItem(
           child: Stack(
             children: [
               RefreshIndicator(
+                color: const Color.fromARGB(255, 0, 0, 0), // لون الدائرة
+  backgroundColor: Colors.white, // خلفية الدائرة
                 onRefresh: _refreshData,
                 child: SingleChildScrollView(
                   child: Column(
@@ -888,7 +890,9 @@ void _updateItem(
                                         width: double.infinity,
                                         height: 1000 * items.length.toDouble(),
                                         child: const Center(
-                                          child: CircularProgressIndicator(),
+                                          child:  CupertinoActivityIndicator(
+                                radius: 15,
+                              ),
                                         ),
                                       ),
                                     ),
@@ -906,7 +910,9 @@ void _updateItem(
                   alignment: Alignment.bottomCenter,
                   child: Padding(
                     padding: EdgeInsets.only(bottom: 150),
-                    child: CircularProgressIndicator(),
+                    child:   CupertinoActivityIndicator(
+                                radius: 15,
+                              ),
                   ),
                 ),
               

@@ -6,6 +6,8 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:igloo/loginpage.dart';
+import 'dart:async';
+import 'package:flutter/cupertino.dart';
 
 const Color bgColor = Color(0xFFF6F6F6);
 const Color cardWhite = Colors.white;
@@ -25,14 +27,45 @@ class _HomePageState extends State<HomePage> {
   final WebSocketService _webSocketService = WebSocketService();
   String username = '';
   bool _isLoggedIn = false;
+  String connectionState = "connected";
+  Timer? pingTimer;
+  Timer? pongTimeout;
+  bool reconnecting = false;
+  TextEditingController myController = TextEditingController();
+ List branches = [];
+  String sla7ia = '';
+bool loading = true;
+bool serverAlive = true;
 
   @override
   void initState() {
     super.initState();
     loadUsername();
     checkLogin();
+    fetchBranches();
+    fetchsla7ia() ;
+     
 
-    _webSocketService.sendMessage({'action': 'check_update'});
+pingTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+
+  _webSocketService.sendMessage({
+    "action": "ping"
+  });
+
+  pongTimeout?.cancel();
+
+  pongTimeout = Timer(const Duration(seconds: 2), () {
+
+    setState(() {
+      serverAlive = false;
+    });
+
+    reconnect();
+
+  });
+
+});
+      _webSocketService.sendMessage({'action': 'check_update'});
     _webSocketService.stream.listen((message) {
       try {
         Map<String, dynamic> data;
@@ -50,16 +83,159 @@ class _HomePageState extends State<HomePage> {
             _isLoggedIn = true;
           });
           print('Login successful. Username: ${data['username']}');
-        } else if (data['status'] == 'errorlog') {
+        } 
+        else if (data["action"] == "pong") {
+
+            pongTimeout?.cancel();
+
+            if (!serverAlive) {
+
+              setState(() {
+                serverAlive = true;
+              });
+
+            }
+
+          }
+        
+        else if (data['status'] == 'addbranchsuccess') {
+          fetchBranches();
+
+        }
+
+        else if (data['status'] == 'branch_list') {
+
+                  setState(() {
+
+                      branches = message['branches'];
+                       loading = false;
+
+                    });
+
+
+          
+
+        }
+
+
+
+                else if (data['status'] == 'errorlog') {
           setState(() {
             _isLoggedIn = false;
           });
           Navigator.pushReplacementNamed(context, 'login');
         }
+
+
       } catch (e) {}
+    });
+    
+  }
+
+  void fetchBranches() {
+    setState(() {
+    });
+    _webSocketService.sendMessage({
+      'action': 'get_branch',
     });
   }
 
+
+  void addBranch(String Branchname)
+  {
+    _webSocketService.sendMessage({
+            'action': 'add_branch',
+            'branch_name': Branchname,
+          });
+  }
+
+void reconnect() {
+
+  if (reconnecting) return;
+
+  reconnecting = true;
+
+  print("Trying to reconnect...");
+
+  Future.delayed(const Duration(seconds: 5), () {
+
+    try {
+
+      _webSocketService.connect();
+
+      reconnecting = false;
+      
+
+    } catch (e) {
+
+      reconnecting = false;
+
+      reconnect(); // يحاول مرة أخرى
+
+    }
+
+  });
+
+}  
+
+void showaddbranch ()
+    {
+
+      showDialog(context: context,
+       builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+           title: Container(
+            alignment: Alignment.center,
+             child: const Text(
+              'اضافة فرع ',
+              style: TextStyle(fontFamily: 'arabic',fontSize: 18,color: Color.fromARGB(255, 66, 66, 66)),
+                       ),
+           ),
+
+           content: Container(
+            height: 100,
+             child: Column(
+              
+              children: [
+             
+                Container(
+                  child:TextField(
+                    controller: myController,
+                    textDirection: TextDirection.rtl,
+                    decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        hintText: "اسم الفرع ",
+                        hintTextDirection: TextDirection.rtl,
+                        hintStyle:
+                            TextStyle(fontFamily: 'arabic', color: Colors.grey)),
+                  ),
+                ),
+                            TextButton(
+                              
+              onPressed: () {
+                final branchname = myController.text;
+
+                addBranch(branchname);
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'اضافة',
+                style: TextStyle(fontFamily: 'arabic', color: Colors.blue),
+              ),
+            ),
+
+             
+              ],
+             ),
+           ),
+
+        );
+
+      });
+
+     }
+  
   Future<void> checkLogin() async {
     // جلب التوكن المحفوظ
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -83,6 +259,16 @@ class _HomePageState extends State<HomePage> {
       username = prefs.getString('username') ?? '';
     });
   }
+
+    Future<void> fetchsla7ia() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      sla7ia = prefs.getString('sla7ia') ?? '';
+
+      print(sla7ia);
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -251,10 +437,11 @@ class _HomePageState extends State<HomePage> {
         body: Container(
             child: Stack(
           children: [
-            RefreshIndicator(
-              onRefresh: loadUsername,
+            Container(
+           
               child: Column(
                 children: [
+                  
                   Container(
                     alignment: Alignment.topRight,
                     padding: const EdgeInsets.only(right: 15, top: 20),
@@ -282,6 +469,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   Container(
+                    height: 290,
                     margin: EdgeInsets.only(top: 30),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -293,7 +481,7 @@ class _HomePageState extends State<HomePage> {
                               Container(
                                 padding: EdgeInsets.only(right: 20),
                                 width: 160,
-                                height: 110,
+                                height: 130,
                                 decoration: BoxDecoration(
                                     color: Color(0xFFF7EFE7),
                                     borderRadius:
@@ -316,12 +504,12 @@ class _HomePageState extends State<HomePage> {
                                           ),
                                         )),
                                     Container(
-                                      margin: EdgeInsets.only(top: 10),
+                                      margin: EdgeInsets.only(top: 20),
                                       child: Text(
                                         " اجمالي الموظفين",
                                         style: TextStyle(
                                             fontFamily: 'arabic',
-                                            fontSize: 12,
+                                            fontSize: 13,
                                             color: Color(0xff696868),
                                             fontWeight: FontWeight.bold),
                                       ),
@@ -346,9 +534,9 @@ class _HomePageState extends State<HomePage> {
                               Container(
                                 padding: EdgeInsets.only(right: 20),
                                 width: 160,
-                                height: 110,
+                                height: 130,
                                 decoration: BoxDecoration(
-                                    color: Color(0xFFF7EFE7),
+                                    color: Color(0xFFece9f2),
                                     borderRadius:
                                         BorderRadius.all(Radius.circular(20))),
                                 child: Column(
@@ -360,21 +548,21 @@ class _HomePageState extends State<HomePage> {
                                           top: 20,
                                         ),
                                         child: SvgPicture.asset(
-                                          'assets/images/empo.svg',
+                                          'assets/images/store.svg',
                                           width: 20,
                                           height: 25,
                                           colorFilter: ColorFilter.mode(
-                                            Color(0xffedbd8d),
+                                            Color.fromARGB(255, 122, 70, 143),
                                             BlendMode.srcIn,
                                           ),
                                         )),
                                     Container(
-                                      margin: EdgeInsets.only(top: 10),
+                                      margin: EdgeInsets.only(top: 20),
                                       child: Text(
-                                        " اجمالي الموظفين",
+                                        " عدد الافرع",
                                         style: TextStyle(
                                             fontFamily: 'arabic',
-                                            fontSize: 12,
+                                            fontSize: 15,
                                             color: Color(0xff696868),
                                             fontWeight: FontWeight.bold),
                                       ),
@@ -403,7 +591,7 @@ class _HomePageState extends State<HomePage> {
                               borderRadius:
                                   BorderRadius.all(Radius.circular(20))),
                           width: 150,
-                          height: 250,
+                          height: 280,
                           child: Column(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
@@ -453,13 +641,190 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                     ),
-                  )
+                  ),
+
+                Container(
+                alignment: Alignment.centerRight, 
+                padding: EdgeInsets.only(right: 20,top: 30),
+                
+                      child:
+                      Column(children: [
+                        Row(
+
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                                                    Text(
+                        " جميع الافرع",
+                        
+                          textAlign: TextAlign.right,
+                          
+                          style: TextStyle(
+                            color: const Color.fromARGB(255, 70, 67, 67),
+                            fontFamily: 'arabic',
+                            fontSize: 23
+                          ),
+
+                        ),
+                      
+                          Container(
+                            alignment: Alignment.center,
+                            margin: EdgeInsets.only(left: 35),
+                            width: 35,
+                            height: 35,
+                            decoration: BoxDecoration(
+                              color: Color(0xFFEBEBEB),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: IconButton(
+                              iconSize: 20,
+                              icon: Icon(Icons.add),
+                              color:Color(0xff656565),
+                              onPressed: showaddbranch,
+                            ),
+                          )                
+                                    ],
+                        ),
+
+                            Container(
+                              margin: EdgeInsets.only(top: 30,left: 20,right: 10),
+                              height: 300,
+                              width: size.width,
+                              child:
+                              loading
+                          ? const Center(
+                              child: CupertinoActivityIndicator(
+                                radius: 15,
+                              ),
+                            )
+                            : ListView.builder(
+                                                      itemCount: branches.length,
+                                                      itemBuilder: (context, index) {
+                                                        final branchesname = branches[index]['branchname'];
+                                                        final branchid= branches[index]['id'];
+                                                        
+                                  return InkWell(
+                                    splashColor: Colors.transparent,
+                                    highlightColor: Colors.transparent,
+                                    borderRadius: BorderRadius.circular(20),
+                                          onTap: () async {
+                                            String page;
+                                            print(branchid);
+                                             final prefs = await SharedPreferences.getInstance();
+                                              await prefs.setInt('branch_id', branchid); 
+
+                                         
+
+                                            if (sla7ia == 'admin') {
+                                              page = 'admin';
+                                            } else if (sla7ia == 'coadmin') {
+                                              page = 'coadmin';
+                                            } else if (sla7ia == 'superadmin') {
+                                              page = 'superadmin';
+                                            } else {
+                                              page = 'nonadmin';
+                                            }
+
+                                            Navigator.pushReplacementNamed(context, page);
+                                          },                                          
+                                                          
+                                      
+    
+
+
+  child: Container(
+    alignment: Alignment.center,
+    height: 70,
+    margin: const EdgeInsets.all(9),
+    padding: const EdgeInsets.symmetric(horizontal: 15),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(20),
+      color: const Color(0xFFF5F5F5),
+
+    ),
+    child: Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: const Color(0xffF3F4F6),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Icon(
+            Icons.store,
+            color: Colors.black87,
+            size: 22,
+          ),
+        ),
+
+        const SizedBox(width: 15),
+
+        Expanded(
+          child: Text(
+            branchesname,
+            style: const TextStyle(
+              fontSize: 17,
+              fontFamily: 'arabic',
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
+            ),
+          ),
+        ),
+
+        const Icon(
+          Icons.arrow_forward_ios,
+          size: 16,
+          color: Colors.grey,
+        ),
+      ],
+    ),
+  ),
+);
+                                },
+                              ),
+                            )                 
+                      ],)
+                    )
+
+ 
                 ],
               ),
-            )
-          ],
+            ),
+ AnimatedSlide(
+      offset: serverAlive ? const Offset(0, 2) : const Offset(0, 0),
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Container(
+          margin: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(15),
+          decoration: BoxDecoration(
+            color: Colors.red,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Text(
+           "  خطا بالشبكة..جاري اعادة الاتصال",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white,
+              fontFamily: 'arabic',
+            ),
+          ),
+        ),
+      ),
+    ),  
+    
+
+    
+    ],
         )),
       ),
     );
+  }
+    @override
+  void dispose() {
+    pingTimer?.cancel();
+    super.dispose();
   }
 }

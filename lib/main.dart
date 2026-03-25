@@ -12,9 +12,9 @@ import 'package:igloo/co_admin.dart';
 import 'package:igloo/superadmin.dart';
 import 'package:igloo/homepage.dart';
 
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  final WebSocketService _webSocketService = WebSocketService();
 
   runApp(const MyApp());
 }
@@ -68,7 +68,7 @@ class _MyAppState extends State<MyApp> {
             } else if (snapshot.data == 'admin') {
               return const Admin(); // الصفحة الرئيسية لـ admin
             } else if (snapshot.data == 'superadmin') {
-              return const HomePage();
+              return const SuperAdmin();
             } else if (snapshot.data == 'coadmin') {
               return const CoAdmin(); // الصفحة الرئيسية لـ coadmin
             } else if (snapshot.data == 'nonadmin') {

@@ -1,0 +1,1 @@
+ C:\\Users\\moha\\Desktop\\igloorealapp\\.dart_tool\\flutter_build\\85c048869171324e3c73a7b2c8836db0\\native_assets.yaml: 

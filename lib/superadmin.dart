@@ -4,7 +4,7 @@ import 'package:igloo/websocket.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'package:flutter/cupertino.dart';
 class SuperAdmin extends StatefulWidget {
   const SuperAdmin({super.key});
 
@@ -15,34 +15,56 @@ class SuperAdmin extends StatefulWidget {
 class _SuperAdmin extends State<SuperAdmin> {
   final WebSocketService _webSocketService = WebSocketService();
   String? selectedValue;
-
+  int? selectedBranchId;
   final List<Map<String, dynamic>> categories = [];
   List<Map<String, dynamic>> selectedItems = [];
 
   List<Map<String, dynamic>> items = [];
 
   final Map<int, int> _counters = {};
-  final String currentVersion = '1.0.2'; // الإصدار الحالي للتطبيق
-  bool _isLoading = false; // متغير حالة لتتبع حالة التحميل
+  final String currentVersion = '1.0.2'; 
+  bool _isLoading = false;
   bool _isitemloading = false;
   bool _isLoggedIn = false;
-  // حالة تسجيل الدخول
+int? branchid;
+List<Map<String, dynamic>> branches = [];
 
-  void fetchCategories() {
+Future<void> fetchCategories() async {
+
     setState(() {
-      _isLoading = true; // تعيين حالة التحميل إلى true
+      _isLoading = true; 
     });
-    _webSocketService.sendMessage({
+
+
+  final prefs = await SharedPreferences.getInstance();
+  int? branchid =0; //prefs.getInt('branch_id');
+
+      if(branchid==0)
+      {
+            _webSocketService.sendMessage({
       'action': 'get_catego',
     });
-  }
 
+
+      }
+
+else{
+  _webSocketService.sendMessage({
+    'action': 'get_categories_by_branch',
+    "branch_id": branchid,
+  });
+}
+}
   @override
   void initState() {
     super.initState();
+    initData();
     fetchCategories();
     checkLogin();
+     fetchBranches();
 
+   
+    
     _webSocketService.sendMessage({'action': 'check_update'});
     _webSocketService.stream.listen((message) {
       try {
@@ -56,7 +78,7 @@ class _SuperAdmin extends State<SuperAdmin> {
         }
 
         print('Decoded data: $data');
-        if (data['status'] == 'product list') {
+        if (data['status'] =='items_list_all') {
           setState(() {
             items = List<Map<String, dynamic>>.from(data['items']);
             _isLoading = false;
@@ -64,7 +86,19 @@ class _SuperAdmin extends State<SuperAdmin> {
                 false; // تعيين حالة التحميل إلى false بعد تحميل العناصر
             print('Updated items: $items');
           });
-        } else if (data['status'] == 'success') {
+        }
+        
+        if (data['status'] == 'items_list') {
+          setState(() {
+            items = List<Map<String, dynamic>>.from(data['items']);
+            _isLoading = false;
+            _isitemloading =
+                false; // تعيين حالة التحميل إلى false بعد تحميل العناصر
+            print('Updated items: $items');
+          });
+        }
+        
+         else if (data['status'] == 'success') {
           setState(() {
             _isLoggedIn = true;
           });
@@ -74,7 +108,25 @@ class _SuperAdmin extends State<SuperAdmin> {
             _isLoggedIn = false;
           });
           Navigator.pushReplacementNamed(context, 'login');
-        } else if (data['status'] == 'catego list') {
+        } 
+        
+
+        else if (data['status'] == 'category_list') {
+          print(data);
+          setState(() {
+            categories.clear();
+            categories
+                .addAll(List<Map<String, dynamic>>.from(data['categories']));
+
+           
+            if (categories.isNotEmpty) {
+              fetchItems(categories[0]['id']);
+            }
+            
+          });
+
+        } 
+        else if (data['status'] == 'catego list') {
           setState(() {
             categories.clear();
             categories
@@ -85,7 +137,18 @@ class _SuperAdmin extends State<SuperAdmin> {
               fetchItems(categories[0]['id']);
             }
           });
-        } else if (data['action'] == 'app_update') {
+
+        } 
+
+else if (data['status'] == 'branch_list') {
+  setState(() {
+    branches.clear();
+    branches.addAll(
+      List<Map<String, dynamic>>.from(data['branches'])
+    );
+  });
+}        
+        else if (data['action'] == 'app_update') {
           final String latestVersion = data['version'];
           final String urlupdate = data['urlupdate'];
           compareVersions(currentVersion, latestVersion, urlupdate);
@@ -121,6 +184,7 @@ class _SuperAdmin extends State<SuperAdmin> {
       });
       print('Error: $error');
     });
+   
   }
 
   Future<void> checkLogin() async {
@@ -144,7 +208,32 @@ class _SuperAdmin extends State<SuperAdmin> {
     fetchCategories(); // تحديث البيانات عند السحب لأسفل
   }
 
-  void fetchItems(int categoryId) {
+void fetchItems(int categoryId) async{
+    setState(() {
+      _isitemloading = true; 
+    });
+
+
+      final prefs = await SharedPreferences.getInstance();
+  int? branchid =0; //prefs.getInt('branch_id');
+
+  if(branchid==0)
+  {
+        _webSocketService.sendMessage({
+      'action': 'get_items_all_branches',
+      'category_id': categoryId,
+    });
+
+  }
+else{
+    _webSocketService.sendMessage({
+      'action': 'get_items_bybranchandcatego',
+      'branch_id':branchid ,
+      'category_id': categoryId,
+    });
+  }
+}
+  /*void fetchItems(int categoryId) {
     setState(() {
       _isitemloading = true; // تعيين حالة التحميل إلى true عند بدء الجلب
     });
@@ -153,7 +242,7 @@ class _SuperAdmin extends State<SuperAdmin> {
       'category_id': categoryId,
     });
   }
-
+*/
   void saveSelectedItems() async {
     final now = DateTime.now().toIso8601String();
 
@@ -163,6 +252,7 @@ class _SuperAdmin extends State<SuperAdmin> {
       final itemCounter = _counters[itemId] ?? 0;
 
       return {
+         'id': itemId,
         'name': itemName,
         'counter': itemCounter,
       };
@@ -172,6 +262,7 @@ class _SuperAdmin extends State<SuperAdmin> {
     _webSocketService.sendMessage({
       'action': 'selcteditem',
       'itemsSelected': itemsToSend,
+      'branch_id': selectedBranchId,
       'category_id': categories[0]['id'],
       'date': now,
       'added_by': username,
@@ -201,6 +292,24 @@ class _SuperAdmin extends State<SuperAdmin> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('company');
   }
+
+    Future<int?> getbranchid() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('branch_id');
+  }
+
+Future<void> initData() async {
+  branchid = await getbranchid();
+
+  print("branchid = $branchid");
+
+}
+void fetchBranches() {
+  _webSocketService.sendMessage({
+    "action": "get_branch"
+  });
+}
+
 
   void toggleSelection(Map<String, dynamic> item) {
     setState(() {
@@ -323,49 +432,42 @@ class _SuperAdmin extends State<SuperAdmin> {
     );
   }
 
-  void showPopup() async {
-    final result = await showDialog<String>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'اختر الشركة',
-            style: TextStyle(fontFamily: 'arabic'),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                title: Text('bnk'),
-                onTap: () {
-                  Navigator.of(context).pop('bnk');
-                },
-              ),
-              ListTile(
-                title: Text('carrefour'),
-                onTap: () {
-                  Navigator.of(context).pop('carrefour');
-                },
-              ),
-              ListTile(
-                title: Text('restaurant'),
-                onTap: () {
-                  Navigator.of(context).pop('restaurant');
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
+void showPopup() async {
+  final result = await showDialog<Map<String, dynamic>>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('اختر الفرع'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: branches.length,
+            itemBuilder: (context, index) {
+              final branch = branches[index];
+              
 
-    if (result != null) {
-      setState(() {
-        selectedValue = result;
-      });
-      saveSelectedItems(); // استدعاء الحفظ بعد الاختيار
-    }
+              return ListTile(
+                title: Text(branch['branchname']),
+                onTap: () {
+                  Navigator.of(context).pop(branch); 
+                },
+              );
+            },
+          ),
+        ),
+      );
+    },
+  );
+
+  if (result != null) {
+    selectedValue = result['name']; 
+    selectedBranchId = result['id'];  
+
+    print(selectedValue);
+    print(selectedBranchId);
   }
+}
 
   void _showEditDialog(BuildContext context, int itemId, String currentName,
       int currentQuantity) {
@@ -650,6 +752,8 @@ class _SuperAdmin extends State<SuperAdmin> {
           child: Stack(
             children: [
               RefreshIndicator(
+                color: const Color.fromARGB(255, 0, 0, 0), // لون الدائرة
+  backgroundColor: Colors.white, // خلفية الدائرة
                 onRefresh: _refreshData,
                 child: SingleChildScrollView(
                   child: Column(
@@ -762,7 +866,7 @@ class _SuperAdmin extends State<SuperAdmin> {
                                       final Map<String, dynamic> item =
                                           items[index];
                                       final int quantity =
-                                          item['quantity'] ?? 0;
+                                         item['quantity'] ?? 0;
                                       final String itemsname =
                                           item['name'] ?? 'غير معروف';
                                       final int itemId = item['id'] ?? 0;
@@ -929,7 +1033,9 @@ class _SuperAdmin extends State<SuperAdmin> {
                                         width: double.infinity,
                                         height: 1000 * items.length.toDouble(),
                                         child: const Center(
-                                          child: CircularProgressIndicator(),
+                                          child:  CupertinoActivityIndicator(
+                                radius: 15,
+                              ),
                                         ),
                                       ),
                                     ),
@@ -949,7 +1055,9 @@ class _SuperAdmin extends State<SuperAdmin> {
                   alignment: Alignment.bottomCenter,
                   child: Padding(
                     padding: EdgeInsets.only(bottom: 150),
-                    child: CircularProgressIndicator(),
+                    child: CupertinoActivityIndicator(
+          radius: 15,
+        ),
                   ),
                 ),
             ],
