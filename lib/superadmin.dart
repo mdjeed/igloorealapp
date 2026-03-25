@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/cupertino.dart';
+
 class SuperAdmin extends StatefulWidget {
   const SuperAdmin({super.key});
 
@@ -22,49 +23,41 @@ class _SuperAdmin extends State<SuperAdmin> {
   List<Map<String, dynamic>> items = [];
 
   final Map<int, int> _counters = {};
-  final String currentVersion = '1.0.2'; 
+  final String currentVersion = '1.0.2';
   bool _isLoading = false;
   bool _isitemloading = false;
   bool _isLoggedIn = false;
-int? branchid;
-List<Map<String, dynamic>> branches = [];
+  int? branchid;
+  List<Map<String, dynamic>> branches = [];
 
-Future<void> fetchCategories() async {
-
+  Future<void> fetchCategories() async {
     setState(() {
-      _isLoading = true; 
+      _isLoading = true;
     });
 
+    final prefs = await SharedPreferences.getInstance();
+    int? branchid = 0; //prefs.getInt('branch_id');
 
-  final prefs = await SharedPreferences.getInstance();
-  int? branchid =0; //prefs.getInt('branch_id');
+    if (branchid == 0) {
+      _webSocketService.sendMessage({
+        'action': 'get_catego',
+      });
+    } else {
+      _webSocketService.sendMessage({
+        'action': 'get_categories_by_branch',
+        "branch_id": branchid,
+      });
+    }
+  }
 
-      if(branchid==0)
-      {
-            _webSocketService.sendMessage({
-      'action': 'get_catego',
-    });
-
-
-      }
-
-else{
-  _webSocketService.sendMessage({
-    'action': 'get_categories_by_branch',
-    "branch_id": branchid,
-  });
-}
-}
   @override
   void initState() {
     super.initState();
     initData();
     fetchCategories();
     checkLogin();
-     fetchBranches();
+    fetchBranches();
 
-   
-    
     _webSocketService.sendMessage({'action': 'check_update'});
     _webSocketService.stream.listen((message) {
       try {
@@ -78,7 +71,7 @@ else{
         }
 
         print('Decoded data: $data');
-        if (data['status'] =='items_list_all') {
+        if (data['status'] == 'items_list_all') {
           setState(() {
             items = List<Map<String, dynamic>>.from(data['items']);
             _isLoading = false;
@@ -87,7 +80,7 @@ else{
             print('Updated items: $items');
           });
         }
-        
+
         if (data['status'] == 'items_list') {
           setState(() {
             items = List<Map<String, dynamic>>.from(data['items']);
@@ -96,9 +89,7 @@ else{
                 false; // تعيين حالة التحميل إلى false بعد تحميل العناصر
             print('Updated items: $items');
           });
-        }
-        
-         else if (data['status'] == 'success') {
+        } else if (data['status'] == 'success') {
           setState(() {
             _isLoggedIn = true;
           });
@@ -108,25 +99,18 @@ else{
             _isLoggedIn = false;
           });
           Navigator.pushReplacementNamed(context, 'login');
-        } 
-        
-
-        else if (data['status'] == 'category_list') {
+        } else if (data['status'] == 'category_list') {
           print(data);
           setState(() {
             categories.clear();
             categories
                 .addAll(List<Map<String, dynamic>>.from(data['categories']));
 
-           
             if (categories.isNotEmpty) {
               fetchItems(categories[0]['id']);
             }
-            
           });
-
-        } 
-        else if (data['status'] == 'catego list') {
+        } else if (data['status'] == 'catego list') {
           setState(() {
             categories.clear();
             categories
@@ -137,18 +121,12 @@ else{
               fetchItems(categories[0]['id']);
             }
           });
-
-        } 
-
-else if (data['status'] == 'branch_list') {
-  setState(() {
-    branches.clear();
-    branches.addAll(
-      List<Map<String, dynamic>>.from(data['branches'])
-    );
-  });
-}        
-        else if (data['action'] == 'app_update') {
+        } else if (data['status'] == 'branch_list') {
+          setState(() {
+            branches.clear();
+            branches.addAll(List<Map<String, dynamic>>.from(data['branches']));
+          });
+        } else if (data['action'] == 'app_update') {
           final String latestVersion = data['version'];
           final String urlupdate = data['urlupdate'];
           compareVersions(currentVersion, latestVersion, urlupdate);
@@ -168,6 +146,33 @@ else if (data['status'] == 'branch_list') {
             duration: Duration(seconds: 2),
           );
           ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        } else if (data['status'] == 'not_available') {
+          setState(() {
+            _isitemloading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.red,
+              margin: const EdgeInsets.only(
+                bottom: 20,
+                left: 80,
+                right: 80,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              content: Text(
+                '❌ العملية أُلغيت: ${data['items'].join(', ')} غير متوفر',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontFamily: 'arabic',
+                ),
+                textAlign: TextAlign.center,
+                textDirection: TextDirection.rtl,
+              ),
+            ),
+          );
         }
       } catch (e) {
         setState(() {
@@ -184,7 +189,6 @@ else if (data['status'] == 'branch_list') {
       });
       print('Error: $error');
     });
-   
   }
 
   Future<void> checkLogin() async {
@@ -208,31 +212,28 @@ else if (data['status'] == 'branch_list') {
     fetchCategories(); // تحديث البيانات عند السحب لأسفل
   }
 
-void fetchItems(int categoryId) async{
+  void fetchItems(int categoryId) async {
     setState(() {
-      _isitemloading = true; 
+      _isitemloading = true;
     });
 
+    final prefs = await SharedPreferences.getInstance();
+    int? branchid = 0; //prefs.getInt('branch_id');
 
-      final prefs = await SharedPreferences.getInstance();
-  int? branchid =0; //prefs.getInt('branch_id');
-
-  if(branchid==0)
-  {
-        _webSocketService.sendMessage({
-      'action': 'get_items_all_branches',
-      'category_id': categoryId,
-    });
-
+    if (branchid == 0) {
+      _webSocketService.sendMessage({
+        'action': 'get_items_all_branches',
+        'category_id': categoryId,
+      });
+    } else {
+      _webSocketService.sendMessage({
+        'action': 'get_items_bybranchandcatego',
+        'branch_id': branchid,
+        'category_id': categoryId,
+      });
+    }
   }
-else{
-    _webSocketService.sendMessage({
-      'action': 'get_items_bybranchandcatego',
-      'branch_id':branchid ,
-      'category_id': categoryId,
-    });
-  }
-}
+
   /*void fetchItems(int categoryId) {
     setState(() {
       _isitemloading = true; // تعيين حالة التحميل إلى true عند بدء الجلب
@@ -245,14 +246,14 @@ else{
 */
   void saveSelectedItems() async {
     final now = DateTime.now().toIso8601String();
-
+    print("SAVE CLICKED");
     final List<Map<String, dynamic>> itemsToSend = selectedItems.map((item) {
       final itemId = item['id'];
       final itemName = item['name'];
       final itemCounter = _counters[itemId] ?? 0;
 
       return {
-         'id': itemId,
+        'id': itemId,
         'name': itemName,
         'counter': itemCounter,
       };
@@ -293,23 +294,20 @@ else{
     return prefs.getString('company');
   }
 
-    Future<int?> getbranchid() async {
+  Future<int?> getbranchid() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getInt('branch_id');
   }
 
-Future<void> initData() async {
-  branchid = await getbranchid();
+  Future<void> initData() async {
+    branchid = await getbranchid();
 
-  print("branchid = $branchid");
+    print("branchid = $branchid");
+  }
 
-}
-void fetchBranches() {
-  _webSocketService.sendMessage({
-    "action": "get_branch"
-  });
-}
-
+  void fetchBranches() {
+    _webSocketService.sendMessage({"action": "get_branch"});
+  }
 
   void toggleSelection(Map<String, dynamic> item) {
     setState(() {
@@ -432,42 +430,43 @@ void fetchBranches() {
     );
   }
 
-void showPopup() async {
-  final result = await showDialog<Map<String, dynamic>>(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('اختر الفرع'),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: branches.length,
-            itemBuilder: (context, index) {
-              final branch = branches[index];
-              
+  void showPopup() async {
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('اختر الفرع'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: branches.length,
+              itemBuilder: (context, index) {
+                final branch = branches[index];
 
-              return ListTile(
-                title: Text(branch['branchname']),
-                onTap: () {
-                  Navigator.of(context).pop(branch); 
-                },
-              );
-            },
+                return ListTile(
+                  title: Text(branch['branchname']),
+                  onTap: () {
+                    Navigator.of(context).pop(branch);
+                  },
+                );
+              },
+            ),
           ),
-        ),
-      );
-    },
-  );
+        );
+      },
+    );
 
-  if (result != null) {
-    selectedValue = result['name']; 
-    selectedBranchId = result['id'];  
+    if (result != null) {
+      selectedValue = result['branchname'];
+      selectedBranchId = result['id'];
 
-    print(selectedValue);
-    print(selectedBranchId);
+      print("Selected branch: $selectedBranchId");
+
+      // 🔥 الحل هنا
+      saveSelectedItems(); // ✅ استدعاء الدالة بعد الاختيار
+    }
   }
-}
 
   void _showEditDialog(BuildContext context, int itemId, String currentName,
       int currentQuantity) {
@@ -753,7 +752,7 @@ void showPopup() async {
             children: [
               RefreshIndicator(
                 color: const Color.fromARGB(255, 0, 0, 0), // لون الدائرة
-  backgroundColor: Colors.white, // خلفية الدائرة
+                backgroundColor: Colors.white, // خلفية الدائرة
                 onRefresh: _refreshData,
                 child: SingleChildScrollView(
                   child: Column(
@@ -866,7 +865,7 @@ void showPopup() async {
                                       final Map<String, dynamic> item =
                                           items[index];
                                       final int quantity =
-                                         item['quantity'] ?? 0;
+                                          item['quantity'] ?? 0;
                                       final String itemsname =
                                           item['name'] ?? 'غير معروف';
                                       final int itemId = item['id'] ?? 0;
@@ -1033,9 +1032,9 @@ void showPopup() async {
                                         width: double.infinity,
                                         height: 1000 * items.length.toDouble(),
                                         child: const Center(
-                                          child:  CupertinoActivityIndicator(
-                                radius: 15,
-                              ),
+                                          child: CupertinoActivityIndicator(
+                                            radius: 15,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -1056,8 +1055,8 @@ void showPopup() async {
                   child: Padding(
                     padding: EdgeInsets.only(bottom: 150),
                     child: CupertinoActivityIndicator(
-          radius: 15,
-        ),
+                      radius: 15,
+                    ),
                   ),
                 ),
             ],
