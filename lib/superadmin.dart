@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/cupertino.dart';
+import 'dart:async';
 
 class SuperAdmin extends StatefulWidget {
   const SuperAdmin({super.key});
@@ -29,6 +30,11 @@ class _SuperAdmin extends State<SuperAdmin> {
   bool _isLoggedIn = false;
   int? branchid;
   List<Map<String, dynamic>> branches = [];
+  bool serverAlive = true;
+  String connectionState = "connected";
+  Timer? pingTimer;
+  Timer? pongTimeout;
+  bool reconnecting = false;
 
   Future<void> fetchCategories() async {
     setState(() {
@@ -36,7 +42,7 @@ class _SuperAdmin extends State<SuperAdmin> {
     });
 
     final prefs = await SharedPreferences.getInstance();
-    int? branchid = 0; //prefs.getInt('branch_id');
+    int? branchid = prefs.getInt('branch_id');
 
     if (branchid == 0) {
       _webSocketService.sendMessage({
@@ -57,6 +63,20 @@ class _SuperAdmin extends State<SuperAdmin> {
     fetchCategories();
     checkLogin();
     fetchBranches();
+    pingTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      _webSocketService.sendMessage({"action": "ping"});
+
+      pongTimeout?.cancel();
+
+      pongTimeout = Timer(const Duration(seconds: 2), () {
+        setState(() {
+          serverAlive = false;
+        });
+        showConnectionError();
+
+        reconnect();
+      });
+    });
 
     _webSocketService.sendMessage({'action': 'check_update'});
     _webSocketService.stream.listen((message) {
@@ -146,6 +166,15 @@ class _SuperAdmin extends State<SuperAdmin> {
             duration: Duration(seconds: 2),
           );
           ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        } else if (data["action"] == "pong") {
+          pongTimeout?.cancel();
+
+          if (!serverAlive) {
+            setState(() {
+              serverAlive = true;
+            });
+            hideConnectionError();
+          }
         } else if (data['status'] == 'not_available') {
           setState(() {
             _isitemloading = false;
@@ -208,17 +237,38 @@ class _SuperAdmin extends State<SuperAdmin> {
     }
   }
 
+  void reconnect() {
+    if (reconnecting) return;
+
+    reconnecting = true;
+
+    print("Trying to reconnect...");
+
+    Future.delayed(const Duration(seconds: 5), () {
+      try {
+        _webSocketService.connect();
+
+        reconnecting = false;
+      } catch (e) {
+        reconnecting = false;
+
+        reconnect(); // يحاول مرة أخرى
+      }
+    });
+  }
+
   Future<void> _refreshData() async {
     fetchCategories(); // تحديث البيانات عند السحب لأسفل
   }
 
   void fetchItems(int categoryId) async {
     setState(() {
+      _isLoading = true;
       _isitemloading = true;
     });
 
     final prefs = await SharedPreferences.getInstance();
-    int? branchid = 0; //prefs.getInt('branch_id');
+    int? branchid = prefs.getInt('branch_id');
 
     if (branchid == 0) {
       _webSocketService.sendMessage({
@@ -270,12 +320,10 @@ class _SuperAdmin extends State<SuperAdmin> {
       'company': companyname,
     });
     setState(() {
-      // إعادة تعيين العدادات إلى 0
       for (var itemId in _counters.keys) {
         _counters[itemId] = 0;
       }
 
-      // إفراغ قائمة العناصر المحددة لإخفاء لون الحواف
       selectedItems.clear();
     });
     fetchItems(categories[0]['id']);
@@ -581,6 +629,42 @@ class _SuperAdmin extends State<SuperAdmin> {
         }
       }
     });
+  }
+
+  OverlayEntry? overlayEntry;
+
+  void showConnectionError() {
+    if (overlayEntry != null) return; // لا تعيد إضافته
+
+    overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        bottom: 20,
+        left: 20,
+        right: 20,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              color: Colors.red,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Text(
+              "خطأ بالشبكة.. جاري إعادة الاتصال",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white, fontFamily: 'arabic'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(overlayEntry!);
+  }
+
+  void hideConnectionError() {
+    overlayEntry?.remove();
+    overlayEntry = null;
   }
 
   @override
@@ -1026,7 +1110,7 @@ class _SuperAdmin extends State<SuperAdmin> {
                                   ),
                                   if (_isitemloading)
                                     Align(
-                                      alignment: Alignment.topCenter,
+                                      alignment: Alignment.center,
                                       child: Container(
                                         color: Colors.white.withOpacity(0.7),
                                         width: double.infinity,

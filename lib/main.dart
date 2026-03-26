@@ -11,16 +11,17 @@ import 'package:igloo/nonadminmainscreen.dart';
 import 'package:igloo/co_admin.dart';
 import 'package:igloo/superadmin.dart';
 import 'package:igloo/homepage.dart';
-
+import 'package:flutter/cupertino.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
   runApp(const MyApp());
 }
+
 //hiiiiiiiiiiii
 class MyApp extends StatefulWidget {
-  const MyApp({super.key}); 
+  const MyApp({super.key});
 
   @override
   _MyAppState createState() => _MyAppState();
@@ -60,19 +61,23 @@ class _MyAppState extends State<MyApp> {
         future: _initialRoute,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CupertinoActivityIndicator(
+                radius: 15,
+              ),
+            );
           } else {
             // توجيه المستخدم بناءً على الحالة
             if (snapshot.data == 'onboarding') {
               return const InterViewPage(); // عرض صفحة Onboarding
             } else if (snapshot.data == 'admin') {
-              return const Admin(); // الصفحة الرئيسية لـ admin
+              return const HomePage(); // الصفحة الرئيسية لـ admin
             } else if (snapshot.data == 'superadmin') {
-              return const SuperAdmin();
+              return const HomePage();
             } else if (snapshot.data == 'coadmin') {
-              return const CoAdmin(); // الصفحة الرئيسية لـ coadmin
+              return const HomePage(); // الصفحة الرئيسية لـ coadmin
             } else if (snapshot.data == 'nonadmin') {
-              return const NonAdmin(); // الصفحة الرئيسية لـ nonadmin
+              return const HomePage(); // الصفحة الرئيسية لـ nonadmin
             } else {
               return const LoginPage(); // صفحة تسجيل الدخول
             }
