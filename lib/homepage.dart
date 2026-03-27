@@ -220,6 +220,60 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Widget _drawerItem({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        alignment: Alignment.center,
+        height: 70,
+        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: const Color(0xFFF5F5F5),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xffF3F4F6),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: Colors.black87,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 15),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontFamily: 'arabic',
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: Colors.grey,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -265,120 +319,72 @@ class _HomePageState extends State<HomePage> {
           ),
           endDrawer: Drawer(
             backgroundColor: Colors.white,
-            child: ListView(
+            elevation: 0,
+            child: Column(
               children: [
+                // 🔷 HEADER
                 Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.only(top: 50, bottom: 25),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                  ),
                   child: const Column(
                     children: [
-                      SizedBox(
-                        height: 20,
+                      CircleAvatar(
+                        radius: 35,
+                        backgroundColor: Colors.white,
+                        child: Icon(Icons.store, size: 40, color: Colors.blue),
                       ),
+                      SizedBox(height: 12),
                       Text(
                         'برنامج ايقلو',
-                        style: TextStyle(fontFamily: 'arabic', fontSize: 25),
+                        style: TextStyle(
+                          fontFamily: 'arabic',
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      SizedBox(
-                        height: 10,
-                      ),
+                      SizedBox(height: 5),
                       Text(
-                        'لوحة ادارة البرنامج',
-                        style: TextStyle(fontFamily: 'arabic', fontSize: 25),
+                        'لوحة الإدارة',
+                        style: TextStyle(
+                          fontFamily: 'arabic',
+                          fontSize: 15,
+                        ),
                       ),
-                      SizedBox(
-                        height: 30,
-                      )
                     ],
                   ),
                 ),
-                Container(
-                  margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
-                  width: double.infinity,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Colors.blue,
-                      width: 1.7,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color.fromARGB(255, 206, 204, 204)
-                            .withOpacity(0.5),
-                        spreadRadius: 0,
-                        blurRadius: 9,
-                        offset: const Offset(0, 3),
+
+                const SizedBox(height: 15),
+
+                // 🔹 الأزرار
+                Expanded(
+                  child: ListView(
+                    children: [
+                      _drawerItem(
+                        icon: Icons.inventory,
+                        title: 'سلع المسحوبة',
+                        onTap: () {
+                          Navigator.pushNamed(context, 'sel3aout');
+                        },
+                      ),
+                      _drawerItem(
+                        icon: Icons.add_box,
+                        title: 'اضافة السلع',
+                        onTap: () {
+                          Navigator.pushNamed(context, 'addproduct');
+                        },
+                      ),
+                      _drawerItem(
+                        icon: Icons.fingerprint,
+                        title: 'تسجيل الخدامين',
+                        onTap: () {
+                          Navigator.pushNamed(context, 'fingerpage');
+                        },
                       ),
                     ],
-                    borderRadius: BorderRadius.circular(16),
-                    color: Colors.white,
-                  ),
-                  child: MaterialButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, 'sel3aout');
-                    },
-                    child: const Text('سلع المسحوبة',
-                        style: TextStyle(fontFamily: 'arabic', fontSize: 15)),
-                  ),
-                ),
-                Container(
-                  margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
-                  width: double.infinity,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Colors.blue,
-                      width: 1.7,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color.fromARGB(255, 206, 204, 204)
-                            .withOpacity(0.5),
-                        spreadRadius: 0,
-                        blurRadius: 9,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                    borderRadius: BorderRadius.circular(16),
-                    color: Colors.white,
-                  ),
-                  child: MaterialButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, 'addproduct');
-                    },
-                    child: const Text(
-                      'اضافة السلع',
-                      style: TextStyle(fontFamily: 'arabic', fontSize: 15),
-                    ),
-                  ),
-                ),
-                Container(
-                  margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
-                  width: double.infinity,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Colors.blue,
-                      width: 1.7,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color.fromARGB(255, 206, 204, 204)
-                            .withOpacity(0.5),
-                        spreadRadius: 0,
-                        blurRadius: 9,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                    borderRadius: BorderRadius.circular(16),
-                    color: Colors.white,
-                  ),
-                  child: MaterialButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, 'fingerpage');
-                    },
-                    child: const Text(
-                      'تسجيل الخدامين',
-                      style: TextStyle(fontFamily: 'arabic', fontSize: 15),
-                    ),
                   ),
                 ),
               ],
