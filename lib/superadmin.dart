@@ -35,6 +35,7 @@ class _SuperAdmin extends State<SuperAdmin> {
   Timer? pingTimer;
   Timer? pongTimeout;
   bool reconnecting = false;
+  int selectedIndex = 0;
 
   Future<void> fetchCategories() async {
     setState(() {
@@ -157,15 +158,29 @@ class _SuperAdmin extends State<SuperAdmin> {
           });
           print('Error status received');
         } else if (data['status'] == 'update_success') {
-          final snackBar = SnackBar(
-            content: Text(
-              'تم التعديل بنجاح',
-              style: TextStyle(fontFamily: 'arabic'),
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.green,
+              margin: const EdgeInsets.only(
+                bottom: 20,
+                left: 80,
+                right: 80,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              content: const Text(
+                'تم إضافة السلعة بنجاح',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontFamily: 'arabic',
+                ),
+                textAlign: TextAlign.center,
+                textDirection: TextDirection.rtl,
+              ),
             ),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
           );
-          ScaffoldMessenger.of(context).showSnackBar(snackBar);
         } else if (data["action"] == "pong") {
           pongTimeout?.cancel();
 
@@ -264,7 +279,6 @@ class _SuperAdmin extends State<SuperAdmin> {
   void fetchItems(int categoryId) async {
     setState(() {
       _isLoading = true;
-      _isitemloading = true;
     });
 
     final prefs = await SharedPreferences.getInstance();
@@ -522,87 +536,152 @@ class _SuperAdmin extends State<SuperAdmin> {
         TextEditingController(text: currentName);
     final TextEditingController quantityController =
         TextEditingController(text: currentQuantity.toString());
-    final TextEditingController addQuantityController =
-        TextEditingController(); // خانة الكمية الإضافية
+    final TextEditingController addQuantityController = TextEditingController();
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           backgroundColor: Colors.white,
-          title: const Text(
-            'تعديل السلعة',
-            style: TextStyle(fontFamily: 'arabic'),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                textDirection: TextDirection.rtl,
-                style: const TextStyle(fontFamily: "arabic"),
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'اسم السلعة',
-                  labelStyle: TextStyle(fontFamily: 'arabic'),
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                textDirection: TextDirection.rtl,
-                style: const TextStyle(fontFamily: "arabic"),
-                controller: quantityController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'الكمية الحالية',
-                  labelStyle: TextStyle(fontFamily: 'arabic'),
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                textDirection: TextDirection.rtl,
-                style: const TextStyle(fontFamily: "arabic"),
-                controller: addQuantityController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'إضافة كمية',
-                  labelStyle: TextStyle(fontFamily: 'arabic'),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text(
-                'إلغاء',
-                style: TextStyle(fontFamily: 'arabic', color: Colors.red),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                // جلب القيم المدخلة
-                final updatedName = nameController.text.trim();
-                final updatedQuantity =
-                    int.tryParse(quantityController.text.trim()) ??
-                        currentQuantity;
-                final addedQuantity =
-                    int.tryParse(addQuantityController.text.trim()) ?? 0;
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // 🔷 العنوان
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.edit, color: Colors.black87),
+                      SizedBox(width: 8),
+                      Text(
+                        'تعديل السلعة',
+                        style: TextStyle(
+                          fontFamily: 'arabic',
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
 
-                // استدعاء دالة التحديث مع القيم الجديدة
-                _updateItem(
-                    itemId, updatedName, updatedQuantity, addedQuantity);
-                Navigator.of(context).pop();
-              },
-              child: const Text(
-                'حفظ',
-                style: TextStyle(fontFamily: 'arabic', color: Colors.blue),
+                  const SizedBox(height: 20),
+
+                  // 🔹 اسم السلعة
+                  _modernField(
+                    controller: nameController,
+                    label: 'اسم السلعة',
+                    icon: Icons.inventory,
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // 🔹 الكمية الحالية
+                  _modernField(
+                    controller: quantityController,
+                    label: 'الكمية الحالية',
+                    icon: Icons.numbers,
+                    isNumber: true,
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  _modernField(
+                    controller: addQuantityController,
+                    label: 'إضافة كمية',
+                    icon: Icons.add,
+                    isNumber: true,
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Colors.red),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text(
+                            'إلغاء',
+                            style: TextStyle(
+                                fontFamily: 'arabic', color: Colors.red),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xff1E1E1E),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () {
+                            final updatedName = nameController.text.trim();
+                            final updatedQuantity =
+                                int.tryParse(quantityController.text.trim()) ??
+                                    currentQuantity;
+                            final addedQuantity = int.tryParse(
+                                    addQuantityController.text.trim()) ??
+                                0;
+
+                            _updateItem(itemId, updatedName, updatedQuantity,
+                                addedQuantity);
+
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text(
+                            'حفظ',
+                            style: TextStyle(
+                                fontFamily: 'arabic', color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         );
       },
+    );
+  }
+
+  Widget _modernField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    bool isNumber = false,
+  }) {
+    return TextField(
+      controller: controller,
+      textDirection: TextDirection.rtl,
+      keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+      style: const TextStyle(fontFamily: "arabic"),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(fontFamily: 'arabic'),
+        prefixIcon: Icon(icon),
+        filled: true,
+        fillColor: const Color(0xffF5F5F5),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+      ),
     );
   }
 
@@ -716,6 +795,34 @@ class _SuperAdmin extends State<SuperAdmin> {
               color: Colors.grey,
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _darkFab({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xff1E1E1E), // 👈 غامق فاخر
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.4),
+            blurRadius: 12,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: FloatingActionButton(
+        onPressed: onTap,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Icon(
+          icon,
+          color: Colors.white, // 👈 واضح على الخلفية الغامقة
         ),
       ),
     );
@@ -898,33 +1005,60 @@ class _SuperAdmin extends State<SuperAdmin> {
                       ),
                       const SizedBox(height: 30),
                       SizedBox(
-                        height: 50,
-                        width: double.infinity,
+                        height: 55,
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
                           itemCount: categories.length,
                           itemBuilder: (context, index) {
                             final categoryName = categories[index]['name'];
-                            return InkWell(
-                              splashColor: Colors.transparent,
-                              highlightColor: Colors.transparent,
-                              onTap: () => fetchItems(categories[index]['id']),
-                              child: Container(
+                            final isSelected = selectedIndex == index;
+
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  selectedIndex = index;
+                                });
+                                fetchItems(categories[index]['id']);
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 250),
                                 alignment: Alignment.center,
                                 width: 130,
-                                margin: const EdgeInsets.all(5),
+                                margin: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 6),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20),
-                                  color: const Color(0xFF26292E),
+                                  borderRadius: BorderRadius.circular(18),
+
+                                  // 🎨 لون حسب الاختيار
+                                  color: isSelected
+                                      ? const Color(0xff1E1E1E) // غامق
+                                      : const Color(0xffF3F4F6), // فاتح
+
+                                  boxShadow: isSelected
+                                      ? [
+                                          BoxShadow(
+                                            color:
+                                                Colors.black.withOpacity(0.25),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 4),
+                                          )
+                                        ]
+                                      : [],
                                 ),
-                                padding: const EdgeInsets.all(5),
                                 child: Text(
                                   categoryName,
-                                  style: const TextStyle(
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
                                     fontSize: 13,
                                     fontFamily: 'arabic',
-                                    fontWeight: FontWeight.w500,
-                                    color: Color.fromARGB(255, 255, 255, 255),
+                                    fontWeight: FontWeight.w600,
+
+                                    // 🎨 لون النص
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Colors.black87,
                                   ),
                                 ),
                               ),
@@ -952,161 +1086,129 @@ class _SuperAdmin extends State<SuperAdmin> {
                                     shrinkWrap: true,
                                     itemCount: items.length,
                                     itemBuilder: (context, index) {
-                                      final Map<String, dynamic> item =
-                                          items[index];
+                                      final item = items[index];
                                       final int quantity =
                                           item['quantity'] ?? 0;
                                       final String itemsname =
                                           item['name'] ?? 'غير معروف';
                                       final int itemId = item['id'] ?? 0;
+
                                       final bool isSelected = selectedItems.any(
                                           (element) => element['id'] == itemId);
+
                                       final int counterValue =
                                           _counters[itemId] ?? 0;
-                                      return InkWell(
+
+                                      return GestureDetector(
                                         onTap: () => toggleSelection(item),
-                                        splashColor: Colors.transparent,
-                                        highlightColor: Colors.transparent,
-                                        child: Container(
-                                          margin: const EdgeInsets.only(
-                                              left: 10, right: 10, top: 20),
-                                          width: double.infinity,
-                                          height: 80,
+                                        child: AnimatedContainer(
+                                          duration:
+                                              const Duration(milliseconds: 250),
+                                          margin: const EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 8),
+                                          padding: const EdgeInsets.all(12),
                                           decoration: BoxDecoration(
-                                            border: Border.all(
-                                              color: isSelected
-                                                  ? Colors.blue
-                                                  : Colors.transparent,
-                                              width: 2.0,
-                                            ),
+                                            color: Colors.white,
+                                            borderRadius:
+                                                BorderRadius.circular(18),
+                                            border: isSelected
+                                                ? Border.all(
+                                                    color:
+                                                        const Color(0xff1E1E1E),
+                                                    width: 1.5)
+                                                : null,
                                             boxShadow: [
                                               BoxShadow(
-                                                color: const Color.fromARGB(
-                                                        255, 206, 204, 204)
-                                                    .withOpacity(0.5),
-                                                spreadRadius: 0,
-                                                blurRadius: 9,
-                                                offset: const Offset(0, 3),
+                                                color: Colors.black
+                                                    .withOpacity(0.06),
+                                                blurRadius: 10,
+                                                offset: const Offset(0, 4),
                                               ),
                                             ],
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                            color: Colors.white,
                                           ),
                                           child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
                                             children: [
-                                              Row(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.center,
-                                                children: [
-                                                  Container(
-                                                    margin:
-                                                        const EdgeInsets.only(
-                                                            right: 10),
-                                                    height: 20,
-                                                    child: Image.asset(
-                                                        'assets/images/photo.png'),
-                                                  ),
-                                                  Container(
-                                                    margin:
-                                                        const EdgeInsets.only(
-                                                            right: 8),
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            top: 16),
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(
-                                                          itemsname,
-                                                          style: const TextStyle(
-                                                              fontFamily:
-                                                                  'arabic',
-                                                              fontSize: 16,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700),
-                                                        ),
-                                                        const SizedBox(
-                                                            height: 5),
-                                                        Text(
-                                                          'المتبقي: ${item['quantity'] ?? 'غير معروف'}',
-                                                          style:
-                                                              const TextStyle(
-                                                            fontFamily:
-                                                                'arabic',
-                                                            fontSize: 13,
-                                                            fontWeight:
-                                                                FontWeight.w400,
-                                                            color:
-                                                                Color.fromARGB(
-                                                                    255,
-                                                                    233,
-                                                                    73,
-                                                                    73),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  )
-                                                ],
-                                              ),
                                               Container(
-                                                padding: const EdgeInsets.only(
-                                                    right: 0),
-                                                child: Row(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
+                                                width: 50,
+                                                height: 50,
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      const Color(0xffF3F4F6),
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                child: const Icon(
+                                                  Icons.inventory_2_outlined,
+                                                  color: Colors.black87,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: Column(
                                                   crossAxisAlignment:
-                                                      CrossAxisAlignment.center,
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.end,
+                                                      CrossAxisAlignment.start,
                                                   children: [
-                                                    IconButton(
-                                                      onPressed: () {
-                                                        _showEditDialog(
-                                                            context,
-                                                            itemId,
-                                                            itemsname,
-                                                            quantity);
-                                                      },
-                                                      icon: const Icon(
-                                                        Icons.edit,
-                                                        color: Colors.blue,
-                                                        size: 15,
-                                                      ),
-                                                    ),
-                                                    IconButton(
-                                                      onPressed: () =>
-                                                          _incrementCounter(
-                                                              itemId),
-                                                      icon: const Icon(
-                                                        Icons
-                                                            .arrow_circle_right,
-                                                        size: 20,
-                                                      ),
-                                                    ),
                                                     Text(
-                                                      '$counterValue',
+                                                      itemsname,
                                                       style: const TextStyle(
-                                                        fontSize: 20,
+                                                        fontFamily: 'arabic',
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.w600,
                                                       ),
                                                     ),
-                                                    IconButton(
-                                                      onPressed: () =>
-                                                          _decrementCounter(
-                                                              itemId),
-                                                      icon: const Icon(
-                                                        Icons.arrow_circle_left,
-                                                        size: 20,
+                                                    const SizedBox(height: 5),
+                                                    Text(
+                                                      'المتبقي: $quantity',
+                                                      style: TextStyle(
+                                                        fontFamily: 'arabic',
+                                                        fontSize: 13,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        color: quantity <= 5
+                                                            ? Colors.red
+                                                            : Colors.grey,
                                                       ),
                                                     ),
                                                   ],
                                                 ),
+                                              ),
+                                              Row(
+                                                children: [
+                                                  IconButton(
+                                                    onPressed: () {
+                                                      _showEditDialog(
+                                                          context,
+                                                          itemId,
+                                                          itemsname,
+                                                          quantity);
+                                                    },
+                                                    icon: const Icon(Icons.edit,
+                                                        size: 18),
+                                                  ),
+                                                  IconButton(
+                                                    onPressed: () =>
+                                                        _incrementCounter(
+                                                            itemId),
+                                                    icon: const Icon(Icons
+                                                        .add_circle_outline),
+                                                  ),
+                                                  Text(
+                                                    '$counterValue',
+                                                    style: const TextStyle(
+                                                      fontSize: 18,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                  IconButton(
+                                                    onPressed: () =>
+                                                        _decrementCounter(
+                                                            itemId),
+                                                    icon: const Icon(Icons
+                                                        .remove_circle_outline),
+                                                  ),
+                                                ],
                                               ),
                                             ],
                                           ),
@@ -1115,24 +1217,21 @@ class _SuperAdmin extends State<SuperAdmin> {
                                     },
                                   ),
                                   if (_isitemloading)
-                                    Align(
-                                      alignment: Alignment.center,
-                                      child: Container(
-                                        color: Colors.white.withOpacity(0.7),
-                                        width: double.infinity,
-                                        height: 1000 * items.length.toDouble(),
-                                        child: const Center(
-                                          child: CupertinoActivityIndicator(
-                                            radius: 15,
-                                          ),
-                                        ),
+                                    Container(
+                                      color: Colors.white.withOpacity(0.6),
+                                      child: const Center(
+                                        child: CupertinoActivityIndicator(
+                                            radius: 15),
                                       ),
                                     ),
                                 ],
                               )
                             : const Center(
-                                child: Text('لا توجد سلع متاحة',
-                                    style: TextStyle(fontFamily: "arabic"))),
+                                child: Text(
+                                  'لا توجد سلع متاحة',
+                                  style: TextStyle(fontFamily: "arabic"),
+                                ),
+                              ),
                       ),
                       SizedBox(height: 100),
                     ],
@@ -1153,78 +1252,150 @@ class _SuperAdmin extends State<SuperAdmin> {
           ),
         ),
         floatingActionButton: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          mainAxisSize: MainAxisSize.max,
           children: [
-            FloatingActionButton(
-              elevation: 0,
-              isExtended: false,
-              onPressed: showPopup,
-              child: const Icon(
-                Icons.add,
-                color: Colors.black87,
-              ),
+            _darkFab(
+              icon: Icons.add,
+              onTap: showPopup,
             ),
 
-            const SizedBox(
-              width: 100,
-            ), // مسافة بين الزرين
-            FloatingActionButton(
-              elevation: 0,
-              isExtended: false,
-              onPressed: () {
-                // تصفية العناصر التي تحتوي على كمية 2 أو أقل
+            const SizedBox(width: 20), // 👈 خليتها أصغر عشان الشكل يكون مرتب
+
+            _darkFab(
+              icon: Icons.filter_list,
+              onTap: () {
                 final lowStockItems = items
                     .where((item) => (item['quantity'] ?? 0) <= 5)
                     .toList();
 
-                // عرض العناصر في مربع حوار
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
-                    return AlertDialog(
+                    return Dialog(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                       backgroundColor: Colors.white,
-                      title: const Text(
-                        'السلع قليلة المخزون',
-                        style: TextStyle(fontFamily: 'arabic'),
-                      ),
-                      content: SizedBox(
-                        height: 200,
-                        width: double.maxFinite,
-                        child: ListView.builder(
-                          itemCount: lowStockItems.length,
-                          itemBuilder: (context, index) {
-                            final item = lowStockItems[index];
-                            return ListTile(
-                              title: Text(
-                                item['name'] ?? 'غير معروف',
-                                textDirection: TextDirection.rtl,
-                                style: const TextStyle(fontFamily: 'arabic'),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // 🔴 العنوان + أيقونة
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Icon(Icons.warning_amber_rounded,
+                                    color: Colors.red, size: 26),
+                                SizedBox(width: 8),
+                                Text(
+                                  'السلع قليلة المخزون',
+                                  style: TextStyle(
+                                    fontFamily: 'arabic',
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 15),
+
+                            SizedBox(
+                              height: 220,
+                              child: ListView.builder(
+                                itemCount: lowStockItems.length,
+                                itemBuilder: (context, index) {
+                                  final item = lowStockItems[index];
+
+                                  return Container(
+                                    margin: const EdgeInsets.only(bottom: 10),
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xffF5F5F5),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 10, vertical: 5),
+                                          decoration: BoxDecoration(
+                                            color: Colors.red.withOpacity(0.1),
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                          child: Text(
+                                            '${item['quantity'] ?? 0}',
+                                            style: const TextStyle(
+                                              fontFamily: 'arabic',
+                                              color: Colors.red,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Text(
+                                            item['name'] ?? 'غير معروف',
+                                            textDirection: TextDirection.rtl,
+                                            style: const TextStyle(
+                                              fontFamily: 'arabic',
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          width: 10,
+                                        ),
+                                        Container(
+                                          width: 40,
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xffEEEEEE),
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                          child: const Icon(
+                                              Icons.inventory_2_outlined),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
                               ),
-                              subtitle: Text(
-                                'الكمية: ${item['quantity'] ?? 0}',
-                                textDirection: TextDirection.rtl,
-                                style: const TextStyle(fontFamily: 'arabic'),
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xff1E1E1E),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text(
+                                  'إغلاق',
+                                  style: TextStyle(
+                                      fontFamily: 'arabic',
+                                      color: Colors.white),
+                                ),
                               ),
-                            );
-                          },
+                            ),
+                          ],
                         ),
                       ),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text(
-                            'إغلاق',
-                            style: TextStyle(fontFamily: 'arabic'),
-                          ),
-                        ),
-                      ],
                     );
                   },
                 );
               },
-              child: const Icon(Icons.filter_list),
             ),
           ],
         ),

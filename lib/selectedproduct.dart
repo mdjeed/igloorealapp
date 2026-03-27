@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:igloo/websocket.dart';
 import 'package:flutter/cupertino.dart';
+
 class SelectedProduct extends StatefulWidget {
   const SelectedProduct({super.key});
 
@@ -79,7 +80,6 @@ class _SelectedProduct extends State<SelectedProduct> {
           height: size.height,
           child: itemsByDate.isNotEmpty
               ? ListView.builder(
-                  reverse: false,
                   itemCount: itemsByDate.keys.length,
                   itemBuilder: (context, index) {
                     String date =
@@ -87,45 +87,108 @@ class _SelectedProduct extends State<SelectedProduct> {
                     List<Map<String, dynamic>> items = itemsByDate[date]!;
 
                     return Padding(
-                      padding: const EdgeInsets.all(10.0),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // عرض التاريخ كعنوان كبير
-                          Text(
-                            date,
-                            style: const TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.bold),
+                          // 🔷 التاريخ (Header)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xffF5F5F5),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              date,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'arabic',
+                              ),
+                            ),
                           ),
+
                           const SizedBox(height: 10),
-                          // عرض العناصر المرتبطة بالتاريخ
+
+                          // 🔹 العناصر
                           ...items.reversed.map((item) {
-                            return ListTile(
-                              title: Text(
-                                item['name'],
-                                style: const TextStyle(
-                                    fontFamily: 'arabic', fontSize: 18),
-                              ), // عرض اسم العنصر
-                              trailing: Column(
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 10),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
                                 children: [
-                                  Text(
-                                        style: const TextStyle(
-                                            fontFamily: 'arabic', fontSize: 11.7),
-                                        'Quantity: ${item['quantity']}', // عرض الكمية
-                                   ),
-                                      //Text(
-                                        //style: const TextStyle(
-                                          //  fontFamily: 'arabic', fontSize: 10.6),
-                                        //'${item['added_by']} : بواسطة', // عرض اسم المستخدم
-                                      //),
-                                  
-                                   Text(
-                                       style: const TextStyle(
-                                          fontFamily: 'arabic', fontSize: 10.6),
-                                       '${item['company']} :متجر', // عرض اسم المستخدم
+                                  // 🔸 أيقونة
+                                  Container(
+                                    width: 45,
+                                    height: 45,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xffF3F4F6),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(
+                                      Icons.inventory_2_outlined,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+
+                                  const SizedBox(width: 12),
+
+                                  // 🔸 النصوص
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item['name'],
+                                          style: const TextStyle(
+                                            fontFamily: 'arabic',
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 5),
+                                        Text(
+                                          'متجر: ${item['company']}',
+                                          style: const TextStyle(
+                                            fontFamily: 'arabic',
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  // 🔸 الكمية
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xffEEEEEE),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      '-${item['quantity']}',
+                                      style: const TextStyle(
+                                        fontFamily: 'arabic',
+                                        fontWeight: FontWeight.bold,
                                       ),
-                                                           
-                                  
+                                    ),
+                                  ),
                                 ],
                               ),
                             );
@@ -136,10 +199,8 @@ class _SelectedProduct extends State<SelectedProduct> {
                   },
                 )
               : const Center(
-                  child:
-                    CupertinoActivityIndicator(
-                                radius: 15,
-                              ),), // عرض مؤشر التحميل إذا لم تكن هناك بيانات بعد
+                  child: CupertinoActivityIndicator(radius: 15),
+                ),
         ),
       ),
     );

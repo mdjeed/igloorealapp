@@ -137,54 +137,118 @@ class _HomePageState extends State<HomePage> {
 
   void showaddbranch() {
     showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            backgroundColor: Colors.white,
-            title: Container(
-              alignment: Alignment.center,
-              child: const Text(
-                'اضافة فرع ',
-                style: TextStyle(
-                    fontFamily: 'arabic',
-                    fontSize: 18,
-                    color: Color.fromARGB(255, 66, 66, 66)),
-              ),
-            ),
-            content: Container(
-              height: 100,
-              child: Column(
-                children: [
-                  Container(
-                    child: TextField(
-                      controller: myController,
-                      textDirection: TextDirection.rtl,
-                      decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          hintText: "اسم الفرع ",
-                          hintTextDirection: TextDirection.rtl,
-                          hintStyle: TextStyle(
-                              fontFamily: 'arabic', color: Colors.grey)),
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 🔷 العنوان
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(Icons.store, color: Colors.black87),
+                    SizedBox(width: 8),
+                    Text(
+                      'إضافة فرع',
+                      style: TextStyle(
+                        fontFamily: 'arabic',
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      final branchname = myController.text;
+                  ],
+                ),
 
-                      addBranch(branchname);
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text(
-                      'اضافة',
-                      style:
-                          TextStyle(fontFamily: 'arabic', color: Colors.blue),
+                const SizedBox(height: 20),
+
+                // 🔹 حقل الإدخال
+                TextField(
+                  controller: myController,
+                  textDirection: TextDirection.rtl,
+                  style: const TextStyle(fontFamily: 'arabic'),
+                  decoration: InputDecoration(
+                    hintText: 'اسم الفرع',
+                    hintTextDirection: TextDirection.rtl,
+                    filled: true,
+                    fillColor: const Color(0xffF5F5F5),
+                    prefixIcon: const Icon(Icons.location_on_outlined),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
                     ),
                   ),
-                ],
-              ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // 🔻 الأزرار
+                Row(
+                  children: [
+                    // ❌ إلغاء
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.red),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text(
+                          'إلغاء',
+                          style: TextStyle(
+                            fontFamily: 'arabic',
+                            color: Colors.red,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(width: 10),
+
+                    // ✅ إضافة
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xff1E1E1E),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () {
+                          final branchname = myController.text.trim();
+
+                          if (branchname.isNotEmpty) {
+                            addBranch(branchname);
+                            Navigator.of(context).pop();
+                          }
+                        },
+                        child: const Text(
+                          'إضافة',
+                          style: TextStyle(
+                            fontFamily: 'arabic',
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          );
-        });
+          ),
+        );
+      },
+    );
   }
 
   Future<void> checkLogin() async {
