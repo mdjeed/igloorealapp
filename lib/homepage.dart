@@ -25,6 +25,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final WebSocketService _webSocketService = WebSocketService();
+  final String currentVersion = '1.0.2';
   String username = '';
   bool _isLoggedIn = false;
   String connectionState = "connected";
@@ -76,6 +77,10 @@ class _HomePageState extends State<HomePage> {
             _isLoggedIn = true;
           });
           print('Login successful. Username: ${data['username']}');
+        } else if (data['action'] == 'app_update') {
+          final String latestVersion = data['version'];
+          final String urlupdate = data['urlupdate'];
+          compareVersions(currentVersion, latestVersion, urlupdate);
         } else if (data["action"] == "pong") {
           pongTimeout?.cancel();
 
@@ -99,6 +104,65 @@ class _HomePageState extends State<HomePage> {
         }
       } catch (e) {}
     });
+  }
+
+  void showUpdateDialog(String latestVersion, String urlupdate) {
+    final String updateUrl = urlupdate;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false, // منع الإغلاق عند النقر خارج الحوار
+      builder: (BuildContext context) {
+        return WillPopScope(
+          onWillPop: () async {
+            // إرجاع false لمنع الإغلاق عند الضغط على زر الرجوع
+            return false;
+          },
+          child: AlertDialog(
+            title: const Text(
+                textAlign: TextAlign.right,
+                style: TextStyle(fontFamily: 'arabic'),
+                'تحديث متاح'),
+            content: Text(
+                textAlign: TextAlign.right,
+                style: TextStyle(fontFamily: 'arabic'),
+                'يوجد إصدار جديد ($latestVersion) متاح. هل ترغب في التحديث الآن؟'),
+            actions: [
+              TextButton(
+                child:
+                    const Text(style: TextStyle(fontFamily: 'arabic'), 'تحديث'),
+                onPressed: () async {
+                  final Uri uri = Uri.parse(updateUrl);
+                  print(uri);
+
+                  try {
+                    await launchUrl(uri);
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          style: TextStyle(fontFamily: 'arabic'),
+                          'تعذر فتح الرابط',
+                        ),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void compareVersions(
+      String currentVersion, String latestVersion, String urlupdate) {
+    if (currentVersion != latestVersion) {
+      showUpdateDialog(latestVersion, urlupdate); // عرض نافذة لتحديث التطبيق
+    } else {
+      print("التطبيق محدث إلى أحدث إصدار.");
+    }
   }
 
   void fetchBranches() {
@@ -487,7 +551,6 @@ class _HomePageState extends State<HomePage> {
                             ],
                           ),
                         ),
-
                         Container(
                           height: 290,
                           margin: EdgeInsets.only(top: 30),
@@ -662,8 +725,6 @@ class _HomePageState extends State<HomePage> {
                             ],
                           ),
                         ),
-
-                        /// 🔥 نفس كودك بدون تغيير… بس Expanded بدل height
                         Expanded(
                           child: Container(
                             alignment: Alignment.centerRight,
@@ -713,12 +774,112 @@ class _HomePageState extends State<HomePage> {
                                             ),
                                           )
                                         : ListView.builder(
-                                            itemCount: branches.length,
+                                            itemCount: branches.length + 1,
                                             itemBuilder: (context, index) {
+                                              if (index == 0) {
+                                                return InkWell(
+                                                  splashColor:
+                                                      Colors.transparent,
+                                                  highlightColor:
+                                                      Colors.transparent,
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                  onTap: () async {
+                                                    final branchid = 0;
+                                                    String page;
+                                                    final prefs =
+                                                        await SharedPreferences
+                                                            .getInstance();
+                                                    await prefs.setInt(
+                                                        'branch_id', branchid);
+
+                                                    if (sla7ia == 'admin') {
+                                                      page = 'admin';
+                                                    } else if (sla7ia ==
+                                                        'coadmin') {
+                                                      page = 'coadmin';
+                                                    } else if (sla7ia ==
+                                                        'superadmin') {
+                                                      page = 'superadmin';
+                                                    } else {
+                                                      page = 'nonadmin';
+                                                    }
+
+                                                    Navigator
+                                                        .pushReplacementNamed(
+                                                            context, page);
+                                                  },
+                                                  child: Container(
+                                                    alignment: Alignment.center,
+                                                    height: 70,
+                                                    margin:
+                                                        const EdgeInsets.all(9),
+                                                    padding: const EdgeInsets
+                                                            .symmetric(
+                                                        horizontal: 15),
+                                                    decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              20),
+                                                      color: const Color(
+                                                          0xFFF5F5F5),
+                                                    ),
+                                                    child: Row(
+                                                      children: [
+                                                        Container(
+                                                          width: 40,
+                                                          height: 40,
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            color: const Color(
+                                                                0xffF3F4F6),
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        12),
+                                                          ),
+                                                          child: const Icon(
+                                                            Icons.store,
+                                                            color:
+                                                                Colors.black87,
+                                                            size: 22,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(
+                                                            width: 15),
+                                                        Expanded(
+                                                          child: Text(
+                                                            'جميع الفروع',
+                                                            style:
+                                                                const TextStyle(
+                                                              fontSize: 17,
+                                                              fontFamily:
+                                                                  'arabic',
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              color:
+                                                                  Colors.black,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        const Icon(
+                                                          Icons
+                                                              .arrow_forward_ios,
+                                                          size: 16,
+                                                          color: Colors.grey,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                );
+                                              }
+
                                               final branchesname =
-                                                  branches[index]['branchname'];
+                                                  branches[index - 1]
+                                                      ['branchname'];
                                               final branchid =
-                                                  branches[index]['id'];
+                                                  branches[index - 1]['id'];
 
                                               return InkWell(
                                                 splashColor: Colors.transparent,

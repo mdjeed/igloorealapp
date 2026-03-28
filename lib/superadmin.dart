@@ -171,7 +171,7 @@ class _SuperAdmin extends State<SuperAdmin> {
                 borderRadius: BorderRadius.circular(12),
               ),
               content: const Text(
-                'تم إضافة السلعة بنجاح',
+                'تم التعديل بنجاح',
                 style: TextStyle(
                   color: Colors.white,
                   fontFamily: 'arabic',
@@ -447,11 +447,10 @@ class _SuperAdmin extends State<SuperAdmin> {
 
     showDialog(
       context: context,
-      barrierDismissible: false, // منع الإغلاق عند النقر خارج الحوار
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return WillPopScope(
           onWillPop: () async {
-            // إرجاع false لمنع الإغلاق عند الضغط على زر الرجوع
             return false;
           },
           child: AlertDialog(
@@ -552,7 +551,6 @@ class _SuperAdmin extends State<SuperAdmin> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // 🔷 العنوان
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: const [
@@ -628,7 +626,7 @@ class _SuperAdmin extends State<SuperAdmin> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          onPressed: () {
+                          onPressed: () async {
                             final updatedName = nameController.text.trim();
                             final updatedQuantity =
                                 int.tryParse(quantityController.text.trim()) ??
@@ -636,9 +634,11 @@ class _SuperAdmin extends State<SuperAdmin> {
                             final addedQuantity = int.tryParse(
                                     addQuantityController.text.trim()) ??
                                 0;
+                            final prefs = await SharedPreferences.getInstance();
+                            int? branchid = prefs.getInt('branch_id');
 
                             _updateItem(itemId, updatedName, updatedQuantity,
-                                addedQuantity);
+                                addedQuantity, branchid);
 
                             Navigator.of(context).pop();
                           },
@@ -686,8 +686,8 @@ class _SuperAdmin extends State<SuperAdmin> {
   }
 
 // الدالة لتحديث العنصر في القائمة
-  void _updateItem(
-      int itemId, String updatedName, int updatedQuantity, int addedQuantity) {
+  void _updateItem(int itemId, String updatedName, int updatedQuantity,
+      int addedQuantity, int? branchid) {
     setState(() {
       for (var item in items) {
         if (item['id'] == itemId) {
@@ -699,6 +699,7 @@ class _SuperAdmin extends State<SuperAdmin> {
           _webSocketService.sendMessage({
             'action': 'update_item',
             'item_id': itemId,
+            'branch_id': branchid,
             'updated_name': updatedName,
             'updated_quantity': updatedQuantity,
             'added_quantity': addedQuantity,
