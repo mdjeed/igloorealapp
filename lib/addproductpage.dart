@@ -14,14 +14,17 @@ class _Addproductpage extends State<Addproductpage> {
   final WebSocketService _webSocketService = WebSocketService();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
-   final TextEditingController _categoname= TextEditingController();
+  final TextEditingController _categoname = TextEditingController();
   int? _selectedCategoryId;
   List<Map<String, dynamic>> categories = [];
+  int? _selectedBranchId;
+  List branches = [];
   @override
   void initState() {
     super.initState();
     // جلب التصنيفات من الخادم عند تحميل الصفحة
     fetchCategories();
+    fetchBranches();
 
     _webSocketService.stream.listen((message) {
       try {
@@ -37,6 +40,10 @@ class _Addproductpage extends State<Addproductpage> {
         if (data['status'] == 'catego list') {
           setState(() {
             categories = List<Map<String, dynamic>>.from(data['categories']);
+          });
+        } else if (data['status'] == 'branch_list') {
+          setState(() {
+            branches = message['branches'];
           });
         } else if (data['status'] == 'error') {
           print('Error status received');
@@ -55,34 +62,44 @@ class _Addproductpage extends State<Addproductpage> {
     });
   }
 
+  void fetchBranches() {
+    setState(() {});
+    _webSocketService.sendMessage({
+      'action': 'get_branch',
+    });
+  }
+
   void saveProduct() {
     final productName = _nameController.text.trim();
     final quantity = int.tryParse(_quantityController.text.trim()) ?? 0;
 
-    if (productName.isEmpty || _selectedCategoryId == null || quantity <= 0) {
-       ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: Colors.red,
-              margin: const EdgeInsets.only(
-                bottom: 20,
-                left: 80,
-                right: 80,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              content: const Text(
-               'رجاءً تحقق من الحقول بشكل صحيح',
+    if (productName.isEmpty ||
+        _selectedCategoryId == null ||
+        _selectedBranchId == null || // 🔥 تحقق من الفرع
+        quantity <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+          margin: const EdgeInsets.only(
+            bottom: 20,
+            left: 80,
+            right: 80,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          content: const Text(
+            'رجاءً تحقق من الحقول بشكل صحيح',
             style: TextStyle(
               color: Colors.white,
               fontFamily: 'arabic',
             ),
-                textAlign: TextAlign.center,
-                textDirection: TextDirection.rtl,
-              ),
-            ),
-);
+            textAlign: TextAlign.center,
+            textDirection: TextDirection.rtl,
+          ),
+        ),
+      );
       return;
     }
 
@@ -91,118 +108,166 @@ class _Addproductpage extends State<Addproductpage> {
       'name': productName,
       'quantity': quantity,
       'category_id': _selectedCategoryId,
+      'branch_id': _selectedBranchId, // 🔥 الجديد
     });
 
     _webSocketService.sendMessage({
       'action': 'get_items_by_category',
       'category_id': _selectedCategoryId,
+      'branch_id': _selectedBranchId, // 🔥 مهم إذا عندك فلترة حسب الفرع
     });
 
-    // إفراغ الحقول بعد الإرسال
     _nameController.clear();
     _quantityController.clear();
-    setState(() {
-     
+
+    setState(() {});
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.green,
+        margin: const EdgeInsets.only(
+          bottom: 20,
+          left: 80,
+          right: 80,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        content: const Text(
+          'تم إضافة السلعة بنجاح',
+          style: TextStyle(
+            color: Colors.white,
+            fontFamily: 'arabic',
+          ),
+          textAlign: TextAlign.center,
+          textDirection: TextDirection.rtl,
+        ),
+      ),
+    );
+  }
+
+  void add_catego() {
+    final addcatego = _categoname.text.trim();
+
+    // تحقق من الحقل
+    if (addcatego.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+          margin: const EdgeInsets.only(
+            bottom: 20,
+            left: 80,
+            right: 80,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          content: const Text(
+            'الرجاء إدخال اسم التصنيف',
+            style: TextStyle(
+              color: Colors.white,
+              fontFamily: 'arabic',
+            ),
+            textAlign: TextAlign.center,
+            textDirection: TextDirection.rtl,
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    _webSocketService.sendMessage({
+      'action': 'add_category',
+      'name': addcatego,
     });
 
-       ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: Colors.green,
-              margin: const EdgeInsets.only(
-                bottom: 20,
-                left: 80,
-                right: 80,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              content: const Text(
-                'تم إضافة السلعة بنجاح',
-            style: TextStyle(
-              color: Colors.white,
-              fontFamily: 'arabic',
-            ),
-                textAlign: TextAlign.center,
-                textDirection: TextDirection.rtl,
-              ),
-            ),
-);
+    _categoname.clear();
+
+    FocusScope.of(context).unfocus();
+
+    // رسالة نجاح
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.green,
+        margin: const EdgeInsets.only(
+          bottom: 20,
+          left: 80,
+          right: 80,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        content: const Text(
+          'تم إضافة التصنيف بنجاح',
+          style: TextStyle(
+            color: Colors.white,
+            fontFamily: 'arabic',
+          ),
+          textAlign: TextAlign.center,
+          textDirection: TextDirection.rtl,
+        ),
+      ),
+    );
   }
 
-
-void add_catego() {
-
-  final addcatego = _categoname.text.trim();
-
-  // تحقق من الحقل
-  if (addcatego.isEmpty) {
-
-       ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: Colors.red,
-              margin: const EdgeInsets.only(
-                bottom: 20,
-                left: 80,
-                right: 80,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              content: const Text(
-               'الرجاء إدخال اسم التصنيف',
-            style: TextStyle(
-              color: Colors.white,
-              fontFamily: 'arabic',
-            ),
-                textAlign: TextAlign.center,
-                textDirection: TextDirection.rtl,
-              ),
-            ),
-);
-
-    return;
+  Widget _modernInput({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    bool isNumber = false,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xffF5F5F5),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: TextField(
+        controller: controller,
+        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+        textDirection: TextDirection.rtl,
+        style: const TextStyle(fontFamily: "arabic"),
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          hintText: hint,
+          hintStyle: const TextStyle(fontFamily: 'arabic'),
+          prefixIcon: Icon(icon),
+        ),
+      ),
+    );
   }
 
-  // إرسال الطلب
-  _webSocketService.sendMessage({
-    'action': 'add_category',
-    'name': addcatego,
-  });
-
-  // مسح الحقل
-  _categoname.clear();
-
-  // إخفاء الكيبورد
-  FocusScope.of(context).unfocus();
-
-  // رسالة نجاح
-       ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: Colors.green,
-              margin: const EdgeInsets.only(
-                bottom: 20,
-                left: 80,
-                right: 80,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              content: const Text(
-               'تم إضافة التصنيف بنجاح',
-            style: TextStyle(
-              color: Colors.white,
+  Widget _mainButton({
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xff1E1E1E),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          elevation: 3,
+        ),
+        onPressed: onTap,
+        child: Text(
+          title,
+          style: const TextStyle(
               fontFamily: 'arabic',
-            ),
-                textAlign: TextAlign.center,
-                textDirection: TextDirection.rtl,
-              ),
-            ),
-);
-
-}
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.white),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -216,148 +281,146 @@ void add_catego() {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(
-                height: 20,
+              const SizedBox(height: 10),
+
+              const Text(
+                "إضافة سلعة",
+                style: TextStyle(
+                  fontFamily: 'arabic',
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
+
+              const SizedBox(height: 15),
+
+              _modernInput(
+                controller: _nameController,
+                hint: "اسم السلعة",
+                icon: Icons.inventory_2_outlined,
+              ),
+
+              const SizedBox(height: 15),
+
+              _modernInput(
+                controller: _quantityController,
+                hint: "العدد",
+                icon: Icons.numbers,
+                isNumber: true,
+              ),
+
+              const SizedBox(height: 15),
+
               Container(
-                alignment: Alignment.center,
-                height: 50,
-                margin: const EdgeInsets.symmetric(horizontal: 10),
-                padding: const EdgeInsets.symmetric(horizontal: 30),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: const Color(0xFFF7F7F7)),
-                child: TextField(
-                  style: TextStyle(fontFamily:"arabic" ),
-                  controller: _nameController,
-                  textDirection: TextDirection.rtl,
-                  decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      hintText: "اسم السلعة",
-                      hintTextDirection: TextDirection.rtl,
-                      hintStyle:
-                          TextStyle(fontFamily: 'arabic', color: Colors.grey)),
+                  color: const Color(0xffF5F5F5),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              Container(
-                alignment: Alignment.center,
-                height: 50,
-                margin: const EdgeInsets.symmetric(horizontal: 10),
-                padding: const EdgeInsets.symmetric(horizontal: 30),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: const Color(0xFFF7F7F7)),
-                child: TextField(
-                  controller: _quantityController,
-                  textDirection: TextDirection.rtl,
-                  style: TextStyle(fontFamily:"arabic" ),
-                  decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      hintText: "العدد",
-                      hintTextDirection: TextDirection.rtl,
-                      hintStyle:
-                          TextStyle(fontFamily: 'arabic', color: Colors.grey)),
-                ),
-              ),
-              DropdownButton<int>(
-                borderRadius: BorderRadius.circular(10),
-                dropdownColor: Colors.white,
-                hint: const Text(
-                  'اختر تصنيف السلعة',
-                  style: TextStyle(
-                    fontFamily: 'arabic',
-                  ),
-                ),
-                value: _selectedCategoryId,
-                items: categories.map((category) {
-                  return DropdownMenuItem<int>(
-                    value: category['id'],
-                    child: Text(category['name'],style: TextStyle(fontFamily: "arabic"),),
-                  );
-                }).toList(),
-                onChanged: (newValue) {
-                  setState(() {
-                    _selectedCategoryId = newValue;
-                  });
-                },
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                margin: const EdgeInsets.only(left: 20, right: 20),
-                child: MaterialButton(
-                  minWidth: double.infinity,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(50)),
-                  height: 40,
-                  elevation: 0,
-                  onPressed: saveProduct,
-                  color: const Color(0xFF242732),
-                  textColor: Colors.white,
-                  child: const Text(
-                    "حفظ السلعة ",
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w400,
-                      fontFamily: 'arabic',
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<int>(
+                    value: _selectedCategoryId,
+                    hint: const Text(
+                      'اختر تصنيف السلعة',
+                      style: TextStyle(fontFamily: 'arabic'),
                     ),
+                    isExpanded: true,
+                    icon: const Icon(Icons.keyboard_arrow_down),
+                    items: categories.map((category) {
+                      return DropdownMenuItem<int>(
+                        value: category['id'],
+                        child: Text(
+                          category['name'],
+                          style: const TextStyle(fontFamily: "arabic"),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (newValue) {
+                      setState(() {
+                        _selectedCategoryId = newValue;
+                      });
+                    },
                   ),
                 ),
               ),
-                   SizedBox(height: 30,),
-               Container(
-                alignment: Alignment.center,
-                height: 50,
-                margin: const EdgeInsets.symmetric(horizontal: 10),
-                padding: const EdgeInsets.symmetric(horizontal: 30),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: const Color(0xFFF7F7F7)),
-                child: TextField(
-                  controller: _categoname,
-                  style: TextStyle(fontFamily:"arabic" ),
-                  textDirection: TextDirection.rtl,
-                  decoration: const InputDecoration(
-                  
-                      border: InputBorder.none,
-                      hintText: "اسم التصنيف",
-                      hintTextDirection: TextDirection.rtl,
-                      hintStyle:
-                          TextStyle(fontFamily: 'arabic', color: Colors.grey)),
-                ),
-              ),
-              SizedBox(height: 15,),
+              const SizedBox(height: 15),
+
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                margin: const EdgeInsets.only(left: 20, right: 20),
-                child: MaterialButton(
-                  minWidth: double.infinity,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(50)),
-                  height: 40,
-                  elevation: 0,
-                  onPressed: add_catego,
-                  color: const Color(0xFF242732),
-                  textColor: Colors.white,
-                  child: const Text(
-                    "اضافة تصنيف",
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w400,
-                      fontFamily: 'arabic',
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xffF5F5F5),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<int>(
+                    value: _selectedBranchId,
+                    hint: const Text(
+                      'اختر الفرع',
+                      style: TextStyle(fontFamily: 'arabic'),
                     ),
+                    isExpanded: true,
+                    icon: const Icon(Icons.keyboard_arrow_down),
+                    items: branches.map((branch) {
+                      return DropdownMenuItem<int>(
+                        value: branch['id'],
+                        child: Text(
+                          branch['branchname'], // حسب اسم العمود عندك
+                          style: const TextStyle(fontFamily: "arabic"),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (newValue) {
+                      setState(() {
+                        _selectedBranchId = newValue;
+                      });
+                    },
                   ),
                 ),
               ),
+
+              const SizedBox(height: 20),
+
+              _mainButton(
+                title: "حفظ السلعة",
+                onTap: saveProduct,
+              ),
+
+              const SizedBox(height: 30),
+
+              // 🔷 Divider
+              const Divider(thickness: 1),
+
+              const SizedBox(height: 20),
+
+              const Text(
+                "إضافة تصنيف",
+                style: TextStyle(
+                  fontFamily: 'arabic',
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 15),
+
+              _modernInput(
+                controller: _categoname,
+                hint: "اسم التصنيف",
+                icon: Icons.category_outlined,
+              ),
+
+              const SizedBox(height: 15),
+
+              _mainButton(
+                title: "إضافة تصنيف",
+                onTap: add_catego,
+              ),
+
+              const SizedBox(height: 30),
             ],
           ),
         ),
