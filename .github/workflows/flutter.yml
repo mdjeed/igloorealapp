@@ -5,30 +5,32 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # تحميل المشروع
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # تثبيت Flutter
+      # 👇 أحدث نسخة Flutter
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.0'
+          channel: stable
 
-      # تثبيت dependencies
+      - name: Check Flutter version
+        run: flutter --version
+
       - name: Install dependencies
         run: flutter pub get
 
-      # بناء APK
       - name: Build APK
         run: flutter build apk --release
 
-      # رفع APK (الإصدار الجديد)
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
