@@ -1,4 +1,4 @@
-name: Flutter APK Build
+name: Flutter APK Debug Build
 
 on:
   push:
@@ -13,19 +13,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # تحميل المشروع
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v2
+      # تثبيت Flutter
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
           channel: stable
 
-      - run: flutter pub get
+      # تثبيت dependencies
+      - name: Get dependencies
+        run: flutter pub get
 
-      - run: flutter clean
+      # تنظيف المشروع
+      - name: Clean project
+        run: flutter clean
 
-      - run: flutter build apk --debug
+      # بناء APK (DEBUG ✅)
+      - name: Build APK
+        run: flutter build apk --debug
 
-      - uses: actions/upload-artifact@v4
+      # عرض الملفات (للتأكد)
+      - name: Show APK files
+        run: ls -R build/app/outputs/
+
+      # رفع APK
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
-          name: app-release
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: app-debug
+          path: build/app/outputs/flutter-apk/*.apk
