@@ -4,7 +4,8 @@
         android:label="igloo"
         android:name="${applicationName}"
         android:icon="@mipmap/appicon"
-        android:enableOnBackInvokedCallback="true">
+        android:enableOnBackInvokedCallback="true"
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"
